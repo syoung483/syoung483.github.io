@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AED除颤仪 - 模型展示</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="container">
+        <div id="threeRef"></div>
+        <div id="info">
+            <h1>🏥 AED除颤仪</h1>
+            <p>使用鼠标拖拽旋转视角，滚轮缩放</p>
+            <div class="controls">
+                <button onclick="toggleAnimation()" class="btn">⏯️ 暂停/播放动画</button>
+                <button onclick="changeSpeed(0.5)" class="btn">🐌 慢速</button>
+                <button onclick="changeSpeed(1.0)" class="btn">▶️ 正常</button>
+                <button onclick="changeSpeed(2.0)" class="btn">⚡ 快速</button>
+                <button onclick="window.location.href='index.html'" class="btn back-btn">🏠 返回设备列表</button>
+            </div>
+        </div>
+        <div class="loading" id="loading">正在加载模型...</div>
+    </div>
+
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+    
+    <script src="script.js"></script>
+</body>
+</html>

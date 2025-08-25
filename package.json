@@ -1,0 +1,13 @@
+{
+  "name": "emergency-safety-platform",
+  "version": "1.0.0",
+  "description": "应急安全教育平台",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8080 -c-1",
+    "dev": "npx live-server --port=8080"
+  },
+  "keywords": ["three.js", "3d", "model", "emergency", "safety", "education"],
+  "author": "",
+  "license": "MIT"
+}
