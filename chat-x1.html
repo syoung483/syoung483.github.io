@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>功能三 - 星火 X1 对话模型</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .chat-container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        .chat-card { background: #ffffff; border-radius: 16px; padding: 18px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); border: 1px solid #e9ecef; }
+        .msg-list { max-height: 60vh; overflow: auto; padding: 8px; }
+        .msg { display:flex; flex-direction: column; gap: 6px; margin: 12px 0; }
+        .bubble { max-width: 80%; padding: 12px 14px; border-radius: 14px; line-height: 1.7; word-break: break-word; white-space: pre-wrap; }
+        .user { align-items: flex-end; }
+        .user .bubble { background: #e8f3ff; border: 1px solid #cfe2ff; border-bottom-right-radius: 4px; }
+        .assistant { align-items: flex-start; }
+        .assistant .bubble { background: #f8f9fa; border: 1px solid #e9ecef; border-bottom-left-radius: 4px; }
+        .reasoning { max-width: 80%; font-size: 13px; color: #6c757d; background: #fff; border-left: 3px solid #17a2b8; padding: 6px 10px; border-radius: 6px; }
+        .input-row { display: flex; gap: 10px; margin-top: 12px; }
+        .input-row input { flex: 1; padding: 12px 14px; border-radius: 24px; border: 1px solid #ced4da; outline: none; }
+        .btn { padding: 10px 16px; border: none; border-radius: 20px; cursor: pointer; color: white; background: #28a745; }
+        .btn:disabled { background: #6c757d; cursor: not-allowed; }
+        .top-actions { display:flex; gap:10px; align-items:center; margin-bottom:12px; }
+        .small { font-size: 12px; color:#6c757d; }
+    </style>
+</head>
+<body>
+<div id="container">
+    <div class="chat-container">
+        <button class="back-btn" onclick="window.location.href='home.html'">← 返回首页</button>
+        <h1>🤖 星火 X1 对话模型</h1>
+        <p class="subtitle">基于 WebSocket 的流式对话 Demo（功能三）</p>
+
+        <div class="chat-card">
+            <div class="top-actions">
+                <button class="btn" id="connectBtn" onclick="ensureConnected()">连接模型</button>
+                <span id="statusText" class="small">未连接</span>
+            </div>
+            <div id="msgList" class="msg-list"></div>
+            <div class="input-row">
+                <input id="userInput" placeholder="输入你的问题，如：推荐两个适合自驾春游的景点" />
+                <button class="btn" id="sendBtn" onclick="sendMsg()" disabled>发送</button>
+            </div>
+            <div class="small" style="margin-top:8px;">提示：已支持自动连接与重连。直接输入问题并发送即可。</div>
+        </div>
+    </div>
+</div>
+
+<script>
+let ws = null;
+let appId = '';
+let connected = false;
+let connecting = false;
+let pendingToSend = null; // 等待连接后发送的消息
+let currentAssistantEl = null; // 当前聚合显示的AI答案元素（气泡）
+let currentReasoningEl = null; // 当前推理内容元素（位于答案上方）
+
+function createMsg(role, text){
+    const list = document.getElementById('msgList');
+    const line = document.createElement('div');
+    line.className = `msg ${role}`;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text || '';
+    line.appendChild(bubble);
+    list.appendChild(line);
+    list.scrollTop = list.scrollHeight;
+    return bubble;
+}
+
+function appendUser(text){
+    createMsg('user', text);
+}
+
+function beginAssistant(){
+    currentAssistantEl = createMsg('assistant', '');
+    currentReasoningEl = null;
+}
+
+function appendAssistantChunk(content){
+    if (!currentAssistantEl) beginAssistant();
+    currentAssistantEl.textContent += content;
+    const list = document.getElementById('msgList');
+    list.scrollTop = list.scrollHeight;
+}
+
+function appendReasoningChunk(content){
+    if (!currentAssistantEl) beginAssistant();
+    if (!currentReasoningEl){
+        currentReasoningEl = document.createElement('div');
+        currentReasoningEl.className = 'reasoning';
+        currentReasoningEl.textContent = '';
+        // 推理放在答案上方：插入到气泡之前
+        const parent = currentAssistantEl.parentElement;
+        parent.insertBefore(currentReasoningEl, currentAssistantEl);
+    }
+    currentReasoningEl.textContent += content;
+}
+
+async function ensureConnected(){
+    if (connected || connecting) return;
+    setStatus('正在获取签名...');
+    connecting = true;
+    try {
+        const resp = await fetch('/api/spark-x1/sign');
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message || '签名失败');
+        const url = data.url; appId = data.appId;
+        setStatus('正在建立连接...');
+        ws = new WebSocket(url);
+        ws.onopen = () => {
+            connected = true; connecting = false;
+            setStatus('已连接');
+            document.getElementById('sendBtn').disabled = false;
+            if (pendingToSend){ const tmp = pendingToSend; pendingToSend = null; _send(tmp); }
+        };
+        ws.onmessage = (event) => {
+            try {
+                const payload = JSON.parse(event.data);
+                if (payload?.header?.code && payload.header.code !== 0) { setStatus('错误: ' + payload.header.message); return; }
+                const choices = payload?.payload?.choices;
+                if (choices?.text && choices.text.length > 0) {
+                    const item = choices.text[0];
+                    if (item.reasoning_content) appendReasoningChunk(item.reasoning_content);
+                    if (item.content) appendAssistantChunk(item.content);
+                    if (choices.status === 2){
+                        currentAssistantEl = null; currentReasoningEl = null;
+                    }
+                }
+            } catch (e) { console.error('解析消息失败:', e, event.data); }
+        };
+        ws.onclose = () => { connected = false; connecting = false; setStatus('已断开'); };
+        ws.onerror = (e) => { console.error(e); setStatus('连接出错'); connecting = false; };
+    } catch (e) {
+        console.error(e); connecting = false; setStatus('签名或连接失败: ' + e.message);
+    }
+}
+
+function setStatus(text){ document.getElementById('statusText').innerText = text; }
+
+function sendMsg(){
+    const input = document.getElementById('userInput');
+    const content = input.value.trim();
+    if (!content) return;
+    input.value = '';
+    appendUser(content);
+    beginAssistant();
+    if (!connected){ pendingToSend = content; ensureConnected(); return; }
+    _send(content);
+}
+
+function _send(content){
+    if (!ws) return;
+    const body = {
+        header: { uid: 'demo_user', app_id: appId, protocol_type: 'spark' },
+        payload: { message: { text: [{ role: 'user', content }] } },
+        parameter: { chat: { domain: 'x1', max_tokens: 2048, temperature: 0.5, top_k: 5, presence_penalty: 1.0, frequency_penalty: 0.02, tools: [] } }
+    };
+    try { ws.send(JSON.stringify(body)); } catch(e){ console.error(e); setStatus('发送失败: ' + e.message); }
+}
+
+window.addEventListener('DOMContentLoaded', () => { ensureConnected(); });
+</script>
+</body>
+</html>

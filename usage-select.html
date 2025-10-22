@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>使用教学 - 仪器选择</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .select-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+        .card { background: #fff; border: 1px solid #e9ecef; border-radius: 12px; padding: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.06); display:flex; flex-direction:column; align-items:center; justify-content:space-between; }
+        .card h3 { margin: 10px 0 6px; }
+        .card .thumb { font-size: 48px; }
+        .card .btn { margin-top: 10px; }
+        .disabled { opacity: .5; }
+        .back-btn { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; transition: all .2s; margin-bottom: 16px; }
+    </style>
+    
+</head>
+<body>
+    <div id="container">
+        <div class="select-container">
+            <button class="back-btn" onclick="window.location.href='home.html'">← 返回首页</button>
+            <h1>🎓 使用教学 - 选择仪器</h1>
+            <p class="subtitle">请选择需要学习的仪器模型</p>
+            <div class="grid">
+                <div class="card">
+                    <div class="thumb">🏥</div>
+                    <h3>AED 除颤仪</h3>
+                    <button class="btn" onclick="window.location.href='teaching-aed.html'">进入教学</button>
+                </div>
+                <div class="card">
+                    <div class="thumb">🧯</div>
+                    <h3>灭火器</h3>
+                    <button class="btn" onclick="alert('灭火器教学占位，后续补充模型与步骤');">占位</button>
+                </div>
+                <div class="card disabled">
+                    <div class="thumb">📦</div>
+                    <h3>设备三</h3>
+                    <button class="btn" disabled>敬请期待</button>
+                </div>
+                <div class="card disabled">
+                    <div class="thumb">📦</div>
+                    <h3>设备四</h3>
+                    <button class="btn" disabled>敬请期待</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>应急安全教育平台 - 图片识别</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .recognition-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            border: 2px dashed #dee2e6;
+        }
+        
+        .upload-area {
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            padding: 40px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area.hidden {
+            display: none;
+        }
+        
+        .upload-area:hover {
+            border-color: #0056b3;
+            background-color: #f8f9ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #28a745;
+            background-color: #f8fff9;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: #007bff;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: block;
+        }
+        
+        /* 新增：图片和结果的并排显示样式 */
+        .image-results-container {
+            display: flex;
+            gap: 30px;
+            margin: 20px 0;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        
+        .image-side {
+            flex: 1;
+            min-width: 300px;
+            text-align: center;
+        }
+        
+        .preview-image-side {
+            max-width: 100%;
+            max-height: 350px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+        
+        .result-section {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 2px solid #e9ecef;
+        }
+        
+        .recognition-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        
+        .recognition-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .recognition-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.6;
+        }
+        
+        .recognition-btn:disabled:hover {
+            background: #6c757d;
+            transform: none;
+        }
+        
+        .result-section h3 {
+            color: #28a745;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 20px;
+        }
+        
+        .result-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #007bff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .result-name {
+            font-weight: bold;
+            color: #212529;
+            margin-bottom: 5px;
+        }
+        
+        .result-score {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        /* 描述文字容器样式 */
+        .description-container {
+            margin: 10px 0;
+        }
+        
+        .description-text {
+            color: #495057;
+            line-height: 1.6;
+            max-height: 80px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            word-wrap: break-word;
+        }
+        
+        .description-text.expanded {
+            max-height: none;
+            overflow: visible;
+        }
+        
+        .expand-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+        
+        .expand-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px dashed #dee2e6;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #f5c6cb;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .back-btn:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div class="recognition-container">
+            <button class="back-btn" onclick="window.location.href='home.html'">← 返回首页</button>
+            
+            <h1>📸 应急设备图片识别</h1>
+            <p class="subtitle">上传照片，智能识别应急设备类型</p>
+            
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">
+                        <strong>点击选择图片</strong><br>
+                        或拖拽图片到此处
+                    </div>
+                    <input type="file" id="fileInput" class="file-input" accept="image/*">
+                </div>
+                
+                <div id="imagePreview" style="display: none;">
+                    <img id="previewImg" class="preview-image" alt="预览图片">
+                    <br>
+                    <button class="recognition-btn" onclick="resetImageSelection()" style="background: #6c757d; margin: 10px;">
+                        🔄 重新选择图片
+                    </button>
+                </div>
+                
+                <!-- 创建图片和结果的并排显示容器 -->
+                <div id="imageAndResultsContainer" class="image-results-container" style="display: none;">
+                    <div class="image-side">
+                        <img id="previewImgSide" class="preview-image-side" alt="预览图片">
+                        <br>
+                        <button class="recognition-btn" onclick="resetImageSelection()" style="background: #6c757d; margin: 10px;">
+                            🔄 重新选择图片
+                        </button>
+                    </div>
+                    
+                    <div id="resultSection" class="result-section">
+                        <h3>🎯 识别结果</h3>
+                        <div id="resultContent"></div>
+                    </div>
+                </div>
+                
+                <!-- 将识别按钮移到这里，使其始终可见 -->
+                <button class="recognition-btn" id="recognizeBtn" onclick="recognizeImage()" style="margin-top: 20px;">
+                    🔍 开始识别
+                </button>
+            </div>
+            
+            <div id="loadingSection" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>正在识别中，请稍候...</p>
+            </div>
+            
+            <div id="errorSection" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script src="image-recognition.js"></script>
+</body>
+</html> 

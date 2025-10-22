@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AED 使用教学</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .teach-container { display:flex; gap:16px; padding: 12px; }
+        .left { flex: 1; position: relative; }
+        .right { width: 360px; }
+        .panel { background:#fff; border:1px solid #e9ecef; border-radius:12px; padding:12px; box-shadow:0 6px 16px rgba(0,0,0,.06); }
+        .steps { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+        .step-btn { padding:10px; border:none; border-radius:10px; background:#28a745; color:#fff; cursor:pointer; }
+        .step-btn.error { background:#dc3545; }
+        .top-actions { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+        .back-btn { background:#6c757d; color:#fff; border:none; padding:8px 14px; border-radius:16px; cursor:pointer; }
+        #loading { position:absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: rgba(255,255,255,.9); padding: 12px 16px; border-radius: 10px; display:none; }
+        #threeRef { width: 100%; height: calc(100vh - 40px); }
+    </style>
+</head>
+<body>
+<div id="container">
+    <div class="teach-container">
+        <div class="left">
+            <div id="threeRef"></div>
+            <div class="loading" id="loading">正在加载模型...</div>
+        </div>
+        <div class="right">
+            <div class="top-actions">
+                <button class="back-btn" onclick="window.location.href='usage-select.html'">← 返回选择</button>
+                <strong>AED 使用教学</strong>
+            </div>
+            <div class="panel">
+                <h3>步骤触发</h3>
+                <div class="steps">
+                    <button class="step-btn" onclick="playStep(1)">1 开机</button>
+                    <button class="step-btn" onclick="playStep(2)">2 贴片</button>
+                    <button class="step-btn" onclick="playStep(3)">3 分析</button>
+                    <button class="step-btn" onclick="playStep(4)">4 放电</button>
+                    <button class="step-btn" onclick="playStep(5)">5 心肺+呼吸</button>
+                    <button class="step-btn error" onclick="playStep('错误 放电接触患者')">错误 放电接触患者</button>
+                    <button class="step-btn error" onclick="playStep('错误 分析时触碰贴片')">错误 分析时触碰贴片</button>
+                    <button class="step-btn error" onclick="playStep('错误贴片')">错误 贴片</button>
+                </div>
+                <div style="margin-top:10px; font-size:12px; color:#6c757d;">提示：每个按钮会加载对应 glb 并替换当前场景，加载方式与 models/aed.glb 一致。</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Three.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+
+<script src="teaching-aed.js"></script>
+</body>
+</html>
+
+
