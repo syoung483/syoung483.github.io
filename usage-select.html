@@ -6,14 +6,96 @@
     <title>使用教学 - 仪器选择</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .select-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-        .card { background: #fff; border: 1px solid #e9ecef; border-radius: 12px; padding: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.06); display:flex; flex-direction:column; align-items:center; justify-content:space-between; }
-        .card h3 { margin: 10px 0 6px; }
-        .card .thumb { font-size: 48px; }
-        .card .btn { margin-top: 10px; }
-        .disabled { opacity: .5; }
-        .back-btn { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; transition: all .2s; margin-bottom: 16px; }
+        .select-container { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            color: white;
+        }
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+            gap: 16px; 
+        }
+        .card { 
+            background: #fff; 
+            border: 1px solid #e9ecef; 
+            border-radius: 12px; 
+            padding: 16px; 
+            box-shadow: 0 6px 16px rgba(0,0,0,0.06); 
+            display:flex; 
+            flex-direction:column; 
+            align-items:center; 
+            justify-content:space-between; 
+            min-height: 180px;
+        }
+        .card h3 { 
+            margin: 10px 0 6px; 
+            color: #333;
+            text-align: center;
+        }
+        .card .thumb { 
+            font-size: 48px; 
+        }
+        .card .btn { 
+            margin-top: 10px; 
+            width: 100%;
+            max-width: 120px;
+        }
+        .disabled { 
+            opacity: .5; 
+        }
+        .back-btn { 
+            background: #6c757d; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            transition: all .2s; 
+            margin-bottom: 16px; 
+        }
+        
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .select-container {
+                padding: 15px;
+            }
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 12px;
+            }
+            .card {
+                padding: 12px;
+                min-height: 160px;
+            }
+            .card .thumb {
+                font-size: 40px;
+            }
+            .card h3 {
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .select-container {
+                padding: 10px;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .card {
+                padding: 15px;
+                min-height: 140px;
+            }
+            .card .thumb {
+                font-size: 36px;
+            }
+            .card h3 {
+                font-size: 0.9rem;
+            }
+        }
     </style>
     
 </head>

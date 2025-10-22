@@ -7,13 +7,15 @@
 body {
     font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    overflow: hidden;
+    overflow-x: hidden;
+    min-height: 100vh;
 }
 
 #container {
     position: relative;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    min-height: 100vh;
+    padding: 20px;
 }
 
 /* 首页样式 */
@@ -94,6 +96,60 @@ body {
     background: #c0392b !important;
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .home-content h1 {
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+    
+    .subtitle {
+        font-size: 1.4rem;
+        margin-bottom: 30px;
+    }
+    
+    .module-buttons {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        max-width: 100%;
+        padding: 0 10px;
+    }
+    
+    .module-btn {
+        padding: 20px 15px;
+        font-size: 1.1rem;
+        min-height: 100px;
+    }
+    
+    #container {
+        padding: 10px;
+    }
+    
+    .home-content {
+        position: relative;
+        top: auto;
+        left: auto;
+        transform: none;
+        margin-top: 50px;
+    }
+}
+
+@media (max-width: 480px) {
+    .home-content h1 {
+        font-size: 1.8rem;
+    }
+    
+    .subtitle {
+        font-size: 1.2rem;
+    }
+    
+    .module-btn {
+        padding: 15px 10px;
+        font-size: 1rem;
+        min-height: 80px;
+    }
 }
 
 /* Three.js 相关样式 */
