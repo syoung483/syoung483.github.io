@@ -36,6 +36,18 @@
             grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
+        .mobile-toggle {
+            display: none;
+            width: 100%;
+            margin-top: 12px;
+            padding: 11px 12px;
+            border: none;
+            border-radius: 14px;
+            background: rgba(91, 115, 255, 0.12);
+            color: #3550c8;
+            font-weight: 700;
+            cursor: pointer;
+        }
         .step-btn {
             padding: 12px 10px;
             border: none;
@@ -94,12 +106,16 @@
         }
         @media (max-width: 640px) {
             .teach-container {
-                padding: 12px;
-                gap: 14px;
+                padding: calc(10px + env(safe-area-inset-top)) 10px calc(18px + env(safe-area-inset-bottom));
+                gap: 12px;
+            }
+            .right {
+                gap: 10px;
             }
             .top-actions {
                 align-items: flex-start;
                 gap: 8px;
+                padding: 0 2px;
             }
             .top-actions strong {
                 width: 100%;
@@ -107,20 +123,47 @@
             }
             .panel {
                 padding: 12px;
+                border-radius: 18px;
             }
             .steps {
                 grid-template-columns: 1fr;
             }
+            .panel.mobile-collapsed .steps .step-btn:nth-child(n + 4) {
+                display: none;
+            }
+            .mobile-toggle {
+                display: block;
+            }
             .step-btn {
-                padding: 12px 10px;
+                padding: 11px 10px;
                 font-size: 0.95rem;
             }
             #threeRef {
-                height: 46vh;
-                min-height: 280px;
+                height: clamp(220px, 34vh, 300px);
+                min-height: 220px;
+                border-radius: 20px;
+            }
+            #loading {
+                max-width: calc(100% - 32px);
+                text-align: center;
             }
             .tip {
                 font-size: 11px;
+            }
+        }
+        @media (max-width: 480px) {
+            .teach-container {
+                padding: calc(8px + env(safe-area-inset-top)) 8px calc(16px + env(safe-area-inset-bottom));
+            }
+            .top-actions strong {
+                font-size: 1rem;
+            }
+            #threeRef {
+                height: clamp(200px, 31vh, 260px);
+                min-height: 200px;
+            }
+            .step-btn {
+                font-size: 0.92rem;
             }
         }
     </style>
@@ -137,7 +180,7 @@
                 <button class="back-btn" onclick="window.location.href='usage-select.html'">← 返回选择</button>
                 <strong>AED 使用教学</strong>
             </div>
-            <div class="panel">
+            <div class="panel mobile-collapsed" id="stepPanel">
                 <h3>步骤触发</h3>
                 <div class="steps">
                     <button class="step-btn" onclick="playStep(1)">1 开机</button>
@@ -149,6 +192,7 @@
                     <button class="step-btn error" onclick="playStep('错误 分析时触碰贴片')">错误 分析时触碰贴片</button>
                     <button class="step-btn error" onclick="playStep('错误贴片')">错误 贴片</button>
                 </div>
+                <button class="mobile-toggle" id="mobileToggleBtn" onclick="toggleMobileSteps()">展开全部步骤</button>
                 <div class="tip">提示：每个按钮会加载对应 glb 并替换当前场景，加载方式与 `models/aed.glb` 一致。</div>
             </div>
         </div>
@@ -162,6 +206,37 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
 
 <script src="teaching-aed.js"></script>
+<script>
+    function syncMobileStepState() {
+        const panel = document.getElementById('stepPanel');
+        const toggleBtn = document.getElementById('mobileToggleBtn');
+        if (!panel || !toggleBtn) return;
+
+        if (window.innerWidth > 640) {
+            panel.classList.remove('mobile-collapsed');
+            toggleBtn.textContent = '展开全部步骤';
+            return;
+        }
+
+        if (!panel.classList.contains('mobile-collapsed')) {
+            toggleBtn.textContent = '收起步骤';
+        } else {
+            toggleBtn.textContent = '展开全部步骤';
+        }
+    }
+
+    function toggleMobileSteps() {
+        const panel = document.getElementById('stepPanel');
+        const toggleBtn = document.getElementById('mobileToggleBtn');
+        if (!panel || !toggleBtn || window.innerWidth > 640) return;
+
+        panel.classList.toggle('mobile-collapsed');
+        toggleBtn.textContent = panel.classList.contains('mobile-collapsed') ? '展开全部步骤' : '收起步骤';
+    }
+
+    window.addEventListener('resize', syncMobileStepState);
+    window.addEventListener('DOMContentLoaded', syncMobileStepState);
+</script>
 </body>
 </html>
 
