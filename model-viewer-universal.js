@@ -164,6 +164,10 @@ function tryLoadModelPaths(loader, config, index) {
                 }
             });
 
+            if (config.title === '🧯 灭火器') {
+                applyExtinguisherFallbackColors(currentModel);
+            }
+
             if (gltf.animations && gltf.animations.length > 0) {
                 console.log('发现动画:', gltf.animations.length, '个');
                 mixer = new THREE.AnimationMixer(currentModel);
@@ -202,6 +206,46 @@ function tryLoadModelPaths(loader, config, index) {
             alert('模型加载失败。\n可能原因：手机网络较慢、模型文件较大，或浏览器 WebGL 资源不足。\n已尝试路径: ' + config.paths.join(' , '));
         }
     );
+}
+
+function applyExtinguisherFallbackColors(model) {
+    model.traverse(function (child) {
+        if (!child.isMesh) {
+            return;
+        }
+
+        const meshName = String(child.name || '').trim();
+        const baseMaterial = Array.isArray(child.material) ? child.material[0] : child.material;
+        const fallbackMaterial = new THREE.MeshStandardMaterial({
+            color: getExtinguisherFallbackColor(meshName),
+            metalness: meshName.includes('圆环') ? 0.2 : 0.08,
+            roughness: meshName.includes('圆环') ? 0.55 : 0.78
+        });
+
+        if (baseMaterial) {
+            fallbackMaterial.transparent = Boolean(baseMaterial.transparent);
+            fallbackMaterial.opacity = typeof baseMaterial.opacity === 'number' ? baseMaterial.opacity : 1;
+            fallbackMaterial.side = typeof baseMaterial.side === 'number' ? baseMaterial.side : THREE.FrontSide;
+        }
+
+        child.material = fallbackMaterial;
+    });
+}
+
+function getExtinguisherFallbackColor(meshName) {
+    if (meshName.includes('主体') || meshName.includes('柱体')) {
+        return 0xd9343a;
+    }
+
+    if (meshName.includes('圆环')) {
+        return 0x2d313a;
+    }
+
+    if (meshName.includes('平面')) {
+        return 0xf3f0e8;
+    }
+
+    return 0xd9343a;
 }
 
 // 添加地面
