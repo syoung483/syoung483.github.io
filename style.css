@@ -1,21 +1,21 @@
 :root {
-    --bg-start: #081122;
-    --bg-mid: #182a63;
-    --bg-end: #7b40e3;
-    --surface: rgba(255, 255, 255, 0.12);
-    --surface-strong: rgba(255, 255, 255, 0.16);
-    --surface-border: rgba(255, 255, 255, 0.2);
+    --bg-start: #dff4ff;
+    --bg-mid: #d9e8ff;
+    --bg-end: #efe2ff;
+    --surface: rgba(255, 255, 255, 0.5);
+    --surface-strong: rgba(255, 255, 255, 0.72);
+    --surface-border: rgba(255, 255, 255, 0.8);
     --panel: rgba(255, 255, 255, 0.9);
     --panel-border: rgba(255, 255, 255, 0.5);
     --text-primary: #ffffff;
     --text-dark: #172036;
-    --text-muted: rgba(255, 255, 255, 0.78);
+    --text-muted: rgba(28, 44, 84, 0.78);
     --accent: linear-gradient(135deg, #6a7cff 0%, #7e5cff 45%, #48c6ef 100%);
     --accent-solid: #667eea;
     --accent-hover: #5568ec;
     --danger: #ff6b6b;
-    --shadow-soft: 0 18px 50px rgba(7, 15, 40, 0.28);
-    --shadow-card: 0 12px 30px rgba(17, 28, 68, 0.18);
+    --shadow-soft: 0 18px 50px rgba(69, 92, 150, 0.16);
+    --shadow-card: 0 12px 30px rgba(88, 104, 163, 0.16);
     --radius-xl: 28px;
     --radius-lg: 20px;
     --radius-md: 14px;
@@ -33,11 +33,12 @@ html {
 
 body {
     font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
-    color: var(--text-primary);
+    color: var(--text-dark);
     background:
-        radial-gradient(circle at top left, rgba(72, 198, 239, 0.22), transparent 28%),
-        radial-gradient(circle at 85% 15%, rgba(180, 94, 255, 0.22), transparent 22%),
-        linear-gradient(135deg, var(--bg-start) 0%, var(--bg-mid) 42%, var(--bg-end) 100%);
+        radial-gradient(circle at top left, rgba(120, 223, 255, 0.55), transparent 30%),
+        radial-gradient(circle at 85% 15%, rgba(191, 157, 255, 0.42), transparent 24%),
+        radial-gradient(circle at 20% 90%, rgba(135, 239, 205, 0.28), transparent 26%),
+        linear-gradient(135deg, var(--bg-start) 0%, var(--bg-mid) 44%, var(--bg-end) 100%);
     overflow-x: hidden;
     min-height: 100vh;
 }
@@ -58,7 +59,7 @@ body::before {
     height: 260px;
     top: 7%;
     left: -60px;
-    background: rgba(93, 220, 255, 0.22);
+    background: rgba(93, 220, 255, 0.35);
 }
 
 body::after {
@@ -93,8 +94,8 @@ body.viewer-page {
     width: min(960px, calc(100vw - 40px));
     padding: 40px 36px;
     text-align: center;
-    color: white;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+    color: var(--text-dark);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.62));
     border: 1px solid var(--surface-border);
     border-radius: var(--radius-xl);
     backdrop-filter: blur(18px);
@@ -108,9 +109,9 @@ body.viewer-page {
     margin-bottom: 16px;
     padding: 8px 14px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    color: rgba(255, 255, 255, 0.86);
+    background: rgba(105, 126, 234, 0.1);
+    border: 1px solid rgba(105, 126, 234, 0.14);
+    color: #4a5fc9;
     font-size: 0.92rem;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -133,7 +134,7 @@ body.viewer-page {
 .hero-description {
     max-width: 760px;
     margin: 0 auto 22px;
-    color: rgba(255, 255, 255, 0.82);
+    color: rgba(28, 44, 84, 0.74);
     font-size: 1rem;
     line-height: 1.85;
 }
@@ -149,12 +150,13 @@ body.viewer-page {
 .highlight-chip {
     padding: 10px 14px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    color: rgba(255, 255, 255, 0.84);
+    background: rgba(255, 255, 255, 0.68);
+    border: 1px solid rgba(121, 144, 231, 0.18);
+    color: rgba(28, 44, 84, 0.84);
     font-size: 0.92rem;
     line-height: 1.4;
     backdrop-filter: blur(8px);
+    box-shadow: 0 10px 18px rgba(88, 104, 163, 0.08);
 }
 
 .module-buttons {
@@ -168,9 +170,9 @@ body.viewer-page {
 .module-btn {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.1));
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.8));
+    color: var(--text-dark);
+    border: 1px solid rgba(255, 255, 255, 0.88);
     padding: 28px 20px;
     border-radius: 22px;
     cursor: pointer;
@@ -182,23 +184,23 @@ body.viewer-page {
     align-items: flex-start;
     justify-content: flex-start;
     text-align: left;
-    box-shadow: 0 14px 30px rgba(9, 19, 48, 0.2);
+    box-shadow: 0 18px 32px rgba(88, 104, 163, 0.12);
 }
 
 .module-btn::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 60%);
+    background: linear-gradient(135deg, rgba(106, 124, 255, 0.12), transparent 60%);
     opacity: 0;
     transition: opacity 0.25s ease;
 }
 
 .module-btn:hover {
     transform: translateY(-6px);
-    border-color: rgba(255, 255, 255, 0.38);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12));
-    box-shadow: 0 22px 42px rgba(9, 19, 48, 0.26);
+    border-color: rgba(255, 255, 255, 0.98);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 255, 0.9));
+    box-shadow: 0 24px 40px rgba(88, 104, 163, 0.18);
 }
 
 .module-btn:hover::before {
@@ -206,8 +208,15 @@ body.viewer-page {
 }
 
 .module-icon {
-    font-size: 1.65rem;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    font-size: 1.55rem;
     margin-bottom: 12px;
+    background: linear-gradient(135deg, #eef2ff, #e4fbff);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.75);
 }
 
 .module-title {
@@ -215,12 +224,29 @@ body.viewer-page {
     font-weight: 700;
     line-height: 1.35;
     margin-bottom: 8px;
+    color: #1a2540;
 }
 
 .module-desc {
-    color: rgba(255, 255, 255, 0.76);
+    color: rgba(26, 37, 64, 0.68);
     font-size: 0.92rem;
     line-height: 1.65;
+}
+
+.module-model .module-icon {
+    background: linear-gradient(135deg, #eaf0ff, #dff7ff);
+}
+
+.module-image .module-icon {
+    background: linear-gradient(135deg, #eef8ff, #def1ff);
+}
+
+.module-chat .module-icon {
+    background: linear-gradient(135deg, #f2ecff, #e7e0ff);
+}
+
+.module-teach .module-icon {
+    background: linear-gradient(135deg, #ecfff3, #e0fff7);
 }
 
 .back-section {
@@ -235,22 +261,22 @@ body.viewer-page {
 }
 
 .back-btn {
-    background: rgba(255, 255, 255, 0.14) !important;
-    color: white;
+    background: rgba(255, 255, 255, 0.78) !important;
+    color: #30406f;
     padding: 11px 18px;
     border-radius: 999px;
     font-size: 0.95rem;
     font-weight: 600;
     letter-spacing: 0.01em;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    box-shadow: 0 10px 22px rgba(8, 15, 40, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 10px 22px rgba(88, 104, 163, 0.12);
     backdrop-filter: blur(10px);
 }
 
 .back-btn:hover {
-    background: rgba(255, 255, 255, 0.22) !important;
+    background: rgba(255, 255, 255, 0.94) !important;
     transform: translateY(-2px);
-    box-shadow: 0 14px 28px rgba(8, 15, 40, 0.24);
+    box-shadow: 0 14px 28px rgba(88, 104, 163, 0.16);
 }
 
 #threeRef {
@@ -267,8 +293,8 @@ body.viewer-page {
     left: 20px;
     z-index: 100;
     color: white;
-    background: linear-gradient(180deg, rgba(7, 16, 40, 0.76), rgba(20, 33, 73, 0.58));
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: linear-gradient(180deg, rgba(65, 92, 180, 0.78), rgba(96, 128, 222, 0.62));
+    border: 1px solid rgba(255, 255, 255, 0.22);
     padding: 22px;
     border-radius: 22px;
     max-width: 320px;
@@ -329,7 +355,7 @@ body.viewer-page {
     border-radius: 12px;
     font-size: 0.95rem;
     font-weight: 600;
-    box-shadow: 0 10px 20px rgba(80, 103, 255, 0.24);
+    box-shadow: 0 10px 20px rgba(80, 103, 255, 0.18);
 }
 
 .btn:hover {
@@ -346,8 +372,8 @@ body.viewer-page {
     font-size: 17px;
     line-height: 1.6;
     z-index: 200;
-    background: rgba(8, 15, 34, 0.78);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(79, 105, 191, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.24);
     box-shadow: var(--shadow-soft);
     padding: 18px 20px;
     border-radius: 18px;
@@ -358,6 +384,31 @@ body.viewer-page {
 
 .loading.show {
     display: block;
+}
+
+.viewer-toolbar {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 110;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.viewer-tool-btn {
+    min-width: 112px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.82);
+    color: #32406d;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 12px 22px rgba(88, 104, 163, 0.14);
+}
+
+.viewer-tool-btn:hover {
+    background: rgba(255, 255, 255, 0.96);
 }
 
 @media (max-width: 768px) {
@@ -395,6 +446,8 @@ body.viewer-page {
     }
 
     .module-icon {
+        width: 48px;
+        height: 48px;
         font-size: 1.45rem;
         margin-bottom: 10px;
     }
@@ -446,6 +499,20 @@ body.viewer-page {
         max-width: 280px;
         font-size: 15px;
         padding: 16px;
+    }
+
+    .viewer-toolbar {
+        top: 12px;
+        right: 12px;
+        left: 12px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .viewer-tool-btn {
+        min-width: 0;
+        padding: 9px 12px;
+        font-size: 0.9rem;
     }
 }
 
