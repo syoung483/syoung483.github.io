@@ -7,72 +7,81 @@
     <link rel="stylesheet" href="style.css">
     <style>
         .select-container {
-            max-width: 1000px;
+            max-width: 1120px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 24px;
             color: white;
+            background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 28px;
+            backdrop-filter: blur(18px);
+            box-shadow: 0 24px 48px rgba(7, 15, 40, 0.24);
         }
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
         }
         .card {
-            background: #fff;
-            border: 1px solid #e9ecef;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid rgba(255,255,255,0.75);
+            border-radius: 22px;
+            padding: 20px 18px;
+            box-shadow: 0 16px 28px rgba(17, 28, 68, 0.12);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            min-height: 180px;
+            min-height: 220px;
+            transition: transform .22s ease, box-shadow .22s ease;
+        }
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 22px 34px rgba(17, 28, 68, 0.18);
         }
         .card h3 {
-            margin: 10px 0 6px;
-            color: #333;
+            margin: 12px 0 8px;
+            color: #1b2540;
             text-align: center;
+            font-size: 1.1rem;
         }
         .card p {
-            color: #666;
+            color: #5a647e;
             text-align: center;
-            line-height: 1.6;
+            line-height: 1.7;
             font-size: 14px;
         }
         .card .thumb {
-            font-size: 48px;
+            width: 76px;
+            height: 76px;
+            border-radius: 22px;
+            display: grid;
+            place-items: center;
+            font-size: 40px;
+            background: linear-gradient(135deg, #eef2ff, #e3f6ff);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.75);
         }
         .card .btn {
-            margin-top: 12px;
+            margin-top: 14px;
             width: 100%;
-            max-width: 140px;
-        }
-        .back-btn {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all .2s;
-            margin-bottom: 16px;
         }
 
         @media (max-width: 768px) {
             .select-container {
-                padding: 15px;
+                padding: 18px 14px;
             }
             .grid {
                 grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
                 gap: 12px;
             }
             .card {
-                padding: 12px;
-                min-height: 170px;
+                padding: 16px 14px;
+                min-height: 196px;
             }
             .card .thumb {
-                font-size: 40px;
+                width: 68px;
+                height: 68px;
+                font-size: 34px;
             }
             .card h3 {
                 font-size: 1rem;
@@ -89,10 +98,12 @@
             }
             .card {
                 padding: 15px;
-                min-height: 150px;
+                min-height: 184px;
             }
             .card .thumb {
-                font-size: 36px;
+                width: 62px;
+                height: 62px;
+                font-size: 30px;
             }
             .card h3 {
                 font-size: 0.95rem;

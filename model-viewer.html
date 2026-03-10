@@ -11,14 +11,22 @@
         <div id="threeRef"></div>
         <div id="info">
             <h1>🏥 AED除颤仪</h1>
+            <div class="viewer-meta">
+                <span>急救设备</span>
+                <span>支持动画</span>
+                <span>移动端可交互</span>
+            </div>
             <p>手机端可单指旋转、双指缩放，首次加载可能需要 10 到 30 秒</p>
             <div class="controls">
+                <div class="control-group-title">模型控制</div>
                 <button onclick="toggleAnimation()" class="btn">⏯️ 暂停/播放动画</button>
                 <button onclick="changeSpeed(0.5)" class="btn">🐌 慢速</button>
                 <button onclick="changeSpeed(1.0)" class="btn">▶️ 正常</button>
                 <button onclick="changeSpeed(2.0)" class="btn">⚡ 快速</button>
+                <div class="control-group-title">页面导航</div>
                 <button id="backBtn" onclick="goBackTarget()" class="btn back-btn">🏠 返回设备列表</button>
             </div>
+            <p class="viewer-note">建议在稳定网络下首次加载，模型就绪后可自由拖拽视角进行观察。</p>
         </div>
         <div class="loading" id="loading">正在加载模型资源...</div>
     </div>
