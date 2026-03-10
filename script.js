@@ -111,12 +111,16 @@ function initModel() {
     const dracoLoader = new THREE.DRACOLoader();
     dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
     loader.setDRACOLoader(dracoLoader);
+    const modelPaths = ['models/1开机.glb', 'models/aed.glb'];
 
     showLoading(true, '正在加载模型资源...');
     startLongLoadHint();
 
-    loader.load(
-        'models/aed.glb',
+    function tryLoadModel(index) {
+        const currentPath = modelPaths[index];
+
+        loader.load(
+        currentPath,
         function (gltf) {
             aedModel = gltf.scene;
             
@@ -156,19 +160,28 @@ function initModel() {
             stopLongLoadHint();
             showLoading(false);
             
-            console.log('AED模型加载成功！');
+            console.log('AED模型加载成功！', currentPath);
         },
         function (progress) {
             updateLoadingProgress(progress.loaded, progress.total);
         },
         function (error) {
             console.error('加载AED模型时出错:', error);
-            console.error('尝试加载的路径:', './models/aed.glb');
+            console.error('尝试加载的路径:', currentPath);
+
+            if (index + 1 < modelPaths.length) {
+                tryLoadModel(index + 1);
+                return;
+            }
+
             stopLongLoadHint();
             showLoading(false);
             alert('模型加载失败。\n可能原因：手机网络较慢、模型文件较大，或浏览器 WebGL 资源不足。\n请稍后重试，或切换到更稳定的网络。\n错误信息: ' + (error && error.message ? error.message : '未知错误'));
         }
     );
+    }
+
+    tryLoadModel(0);
 }
 
 // 添加地面
