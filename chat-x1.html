@@ -119,6 +119,7 @@
 <script>
 let ws = null;
 let appId = '';
+let sparkModelId = '';
 let connected = false;
 let connecting = false;
 let pendingToSend = null; // 等待连接后发送的消息
@@ -191,7 +192,9 @@ async function ensureConnected(){
         if (!resp.ok) throw new Error(`签名接口请求失败: HTTP ${resp.status}`);
         const data = await resp.json();
         if (!data.success) throw new Error(data.message || '签名失败');
-        const url = data.url; appId = data.appId;
+        const url = data.url;
+        appId = data.appId;
+        sparkModelId = data.modelId || 'x1';
         setStatus('正在建立连接...');
         ws = new WebSocket(url);
         ws.onopen = () => {
@@ -249,15 +252,15 @@ function sendMsg(){
 function _send(content){
     if (!ws) return;
     const body = {
-        header: { uid: 'demo_user', app_id: appId, protocol_type: 'spark' },
+        header: { uid: 'demo_user', app_id: appId },
         payload: { message: { text: [{ role: 'user', content }] } },
-        parameter: { chat: { domain: 'x1', max_tokens: 2048, temperature: 0.5, top_k: 5, presence_penalty: 1.0, frequency_penalty: 0.02, tools: [] } }
+        parameter: { chat: { domain: sparkModelId || 'x1', max_tokens: 2048, temperature: 0.5, top_k: 4 } }
     };
     try { ws.send(JSON.stringify(body)); } catch(e){ console.error(e); setStatus('发送失败: ' + e.message); }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    setStatus(getBackendBase() ? '待连接' : '未配置后端地址');
+    setStatus(getBackendBase() ? '待连接' : '未配置后端地址，请在 frontend-config.js 中填写 backendBaseUrl');
     document.getElementById('sendBtn').disabled = false;
 });
 </script>

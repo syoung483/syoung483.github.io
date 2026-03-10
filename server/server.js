@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -268,7 +270,8 @@ app.get('/api/spark-x1/sign', (req, res) => {
         res.json({
             success: true,
             url: wsUrl,
-            appId: SPARK_X1.appId
+            appId: SPARK_X1.appId,
+            modelId: SPARK_X1.modelId
         });
     } catch (e) {
         res.status(500).json({ success: false, message: e.message });

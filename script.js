@@ -5,9 +5,30 @@ let mixer;
 let animations = [];
 let clock;
 
+const runtimeConfig = createRuntimeConfig();
+let loadingHintTimer = null;
+
+function createRuntimeConfig() {
+    const ua = navigator.userAgent || '';
+    const isMobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+    const isTouchDevice = window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+    const deviceMemory = Number(navigator.deviceMemory || 0);
+    const cpuCores = Number(navigator.hardwareConcurrency || 0);
+    const reduceQuality = isMobileUa || isTouchDevice || (deviceMemory > 0 && deviceMemory <= 4) || (cpuCores > 0 && cpuCores <= 4);
+
+    return {
+        isMobile: isMobileUa || isTouchDevice,
+        reduceQuality,
+        antialias: !reduceQuality,
+        enableShadows: !reduceQuality,
+        pixelRatioCap: reduceQuality ? 1.25 : 2,
+        longLoadHintMs: reduceQuality ? 6000 : 8000
+    };
+}
+
 // 初始化
 function init() {
-    console.log('开始初始化...');
+    console.log('开始初始化...', runtimeConfig);
     
     // 创建场景
     scene = new THREE.Scene();
@@ -21,20 +42,26 @@ function init() {
     camera.lookAt(0, 0, 0);
     
     // 创建渲染器
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer = new THREE.WebGLRenderer({
+        antialias: runtimeConfig.antialias,
+        powerPreference: 'high-performance'
+    });
     renderer.setSize(width, height);
-    renderer.shadowMap.enabled = true;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, runtimeConfig.pixelRatioCap));
+    renderer.shadowMap.enabled = runtimeConfig.enableShadows;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     
     // 添加到DOM
     const container = document.getElementById('threeRef');
+    renderer.domElement.style.touchAction = 'none';
     container.appendChild(renderer.domElement);
     
     // 创建控制器
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
+    controls.enablePan = !runtimeConfig.isMobile;
     
     // 初始化光源
     initLights();
@@ -64,15 +91,16 @@ function initLights() {
     scene.add(ambientLight);
     
     // 方向光
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, runtimeConfig.reduceQuality ? 0.7 : 0.8);
     directionalLight.position.set(100, 100, 50);
-    directionalLight.castShadow = true;
+    directionalLight.castShadow = runtimeConfig.enableShadows;
     scene.add(directionalLight);
     
-    // 点光源
-    const pointLight = new THREE.PointLight(0xffffff, 0.5);
-    pointLight.position.set(-100, 100, -100);
-    scene.add(pointLight);
+    if (!runtimeConfig.reduceQuality) {
+        const pointLight = new THREE.PointLight(0xffffff, 0.5);
+        pointLight.position.set(-100, 100, -100);
+        scene.add(pointLight);
+    }
 }
 
 // 初始化模型
@@ -82,29 +110,24 @@ function initModel() {
     const loader = new THREE.GLTFLoader();
     const dracoLoader = new THREE.DRACOLoader();
     dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-    dracoLoader.preload();
     loader.setDRACOLoader(dracoLoader);
 
-    // 显示加载提示
-    showLoading(true);
+    showLoading(true, '正在加载模型资源...');
+    startLongLoadHint();
 
-    // 加载AED模型
     loader.load(
         'models/aed.glb',
         function (gltf) {
             aedModel = gltf.scene;
             
-            // 设置模型位置和缩放
             aedModel.position.set(0, 0, 0);
-            aedModel.scale.set(5, 5, 5); // 放大5倍
+            aedModel.scale.set(5, 5, 5);
             
-            // 启用阴影
             aedModel.traverse(function (child) {
                 if (child.isMesh) {
-                    child.castShadow = true;
-                    child.receiveShadow = true;
+                    child.castShadow = runtimeConfig.enableShadows;
+                    child.receiveShadow = runtimeConfig.enableShadows;
                     
-                    // 设置材质属性
                     if (child.material) {
                         child.material.metalness = 0.1;
                         child.material.roughness = 0.8;
@@ -113,16 +136,14 @@ function initModel() {
                 }
             });
             
-            // 检查并设置动画
             if (gltf.animations && gltf.animations.length > 0) {
                 console.log('发现动画:', gltf.animations.length, '个');
                 mixer = new THREE.AnimationMixer(aedModel);
                 animations = gltf.animations;
                 
-                // 播放所有动画（降低速度）
-                animations.forEach((clip, index) => {
+                animations.forEach(function (clip) {
                     const action = mixer.clipAction(clip);
-                    action.setEffectiveTimeScale(0.5); // 降低动画速度到50%
+                    action.setEffectiveTimeScale(0.5);
                     action.play();
                     console.log('播放动画:', clip.name, '速度: 50%');
                 });
@@ -130,27 +151,22 @@ function initModel() {
                 console.log('该模型没有动画');
             }
             
-            // 将模型添加到场景
             scene.add(aedModel);
-            
-            // 调整相机位置以适应模型
             fitCameraToModel();
-            
-            // 隐藏加载提示
+            stopLongLoadHint();
             showLoading(false);
             
             console.log('AED模型加载成功！');
         },
         function (progress) {
-            // 加载进度
-            const percentComplete = (progress.loaded / progress.total) * 100;
-            console.log('加载进度: ' + percentComplete + '%');
+            updateLoadingProgress(progress.loaded, progress.total);
         },
         function (error) {
             console.error('加载AED模型时出错:', error);
             console.error('尝试加载的路径:', './models/aed.glb');
+            stopLongLoadHint();
             showLoading(false);
-            alert('模型加载失败，请检查文件路径是否正确\n错误信息: ' + error.message);
+            alert('模型加载失败。\n可能原因：手机网络较慢、模型文件较大，或浏览器 WebGL 资源不足。\n请稍后重试，或切换到更稳定的网络。\n错误信息: ' + (error && error.message ? error.message : '未知错误'));
         }
     );
 }
@@ -166,7 +182,7 @@ function addGround() {
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -10;
-    ground.receiveShadow = true;
+    ground.receiveShadow = runtimeConfig.enableShadows;
     scene.add(ground);
 }
 
@@ -182,7 +198,7 @@ function fitCameraToModel() {
     const fov = camera.fov * (Math.PI / 180);
     let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
     
-    cameraZ *= 0.6; // 更拉近一点
+    cameraZ *= 0.6;
     
     camera.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
     camera.lookAt(center);
@@ -190,13 +206,45 @@ function fitCameraToModel() {
     controls.update();
 }
 
+function updateLoadingProgress(loaded, total) {
+    if (total > 0) {
+        const percentComplete = Math.min(100, (loaded / total) * 100);
+        const loadedMb = (loaded / 1024 / 1024).toFixed(1);
+        const totalMb = (total / 1024 / 1024).toFixed(1);
+        showLoading(true, `正在加载模型... ${percentComplete.toFixed(0)}% (${loadedMb}/${totalMb} MB)`);
+        console.log('加载进度: ' + percentComplete.toFixed(0) + '%');
+        return;
+    }
+
+    const loadedMb = (loaded / 1024 / 1024).toFixed(1);
+    showLoading(true, `正在加载模型... 已下载 ${loadedMb} MB`);
+}
+
+function startLongLoadHint() {
+    stopLongLoadHint();
+    loadingHintTimer = window.setTimeout(function () {
+        showLoading(true, '模型较大，手机端首次加载可能需要 10 到 30 秒，请保持页面开启...');
+    }, runtimeConfig.longLoadHintMs);
+}
+
+function stopLongLoadHint() {
+    if (loadingHintTimer) {
+        window.clearTimeout(loadingHintTimer);
+        loadingHintTimer = null;
+    }
+}
+
 // 显示/隐藏加载提示
-function showLoading(show) {
+function showLoading(show, message) {
     const loadingDiv = document.getElementById('loading');
     if (loadingDiv) {
         if (show) {
+            if (message) {
+                loadingDiv.textContent = message;
+            }
             loadingDiv.classList.add('show');
         } else {
+            loadingDiv.textContent = '正在加载模型...';
             loadingDiv.classList.remove('show');
         }
     }
@@ -210,22 +258,20 @@ function onWindowResize() {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, runtimeConfig.pixelRatioCap));
 }
 
 // 动画循环
 function animate() {
     requestAnimationFrame(animate);
     
-    // 更新控制器
     controls.update();
     
-    // 更新动画混合器
     if (mixer) {
         const delta = clock.getDelta();
         mixer.update(delta);
     }
     
-    // 渲染场景
     renderer.render(scene, camera);
 }
 

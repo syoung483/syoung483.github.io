@@ -64,9 +64,10 @@ function getConfig() {
             appId: process.env.SPARK_X1_APP_ID || legacySpark.appId || '',
             apiKey: process.env.SPARK_X1_API_KEY || legacySpark.apiKey || '',
             apiSecret: process.env.SPARK_X1_API_SECRET || legacySpark.apiSecret || '',
-            host: 'spark-api.xf-yun.com',
-            path: '/v1/x1',
-            wss: 'wss://spark-api.xf-yun.com/v1/x1'
+            modelId: process.env.SPARK_X1_MODEL_ID || process.env.SPARK_X1_DOMAIN || legacySpark.modelId || 'x1',
+            host: process.env.SPARK_X1_HOST || 'spark-api.xf-yun.com',
+            path: process.env.SPARK_X1_PATH || '/v1/x1',
+            wss: process.env.SPARK_X1_WSS || 'wss://spark-api.xf-yun.com/v1/x1'
         }
     };
 }
@@ -179,7 +180,8 @@ function buildSparkSignedUrl() {
 
     return {
         url: `${spark.wss}?authorization=${encodeURIComponent(authorization)}&date=${encodeURIComponent(date)}&host=${encodeURIComponent(spark.host)}`,
-        appId: spark.appId
+        appId: spark.appId,
+        modelId: spark.modelId
     };
 }
 
