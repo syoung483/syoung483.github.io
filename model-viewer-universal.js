@@ -234,7 +234,7 @@ function applyExtinguisherFallbackColors(model) {
 
 function getExtinguisherFallbackColor(meshName) {
     if (meshName.includes('主体') || meshName.includes('柱体')) {
-        return 0xd61f33;
+        return 0xe60012;
     }
 
     if (meshName.includes('圆环')) {
@@ -245,7 +245,7 @@ function getExtinguisherFallbackColor(meshName) {
         return 0xf3f0e8;
     }
 
-    return 0xd61f33;
+    return 0xe60012;
 }
 
 // 添加地面
