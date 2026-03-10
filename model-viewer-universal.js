@@ -16,7 +16,7 @@ const modelConfig = {
         scale: 5
     },
     '灭火器': {
-        paths: ['灭火器.glb', 'models/灭火器.glb'],
+        paths: ['大创灭火器应用.glb', '灭火器.glb', 'models/灭火器.glb'],
         title: '🧯 灭火器',
         scale: 5
     },

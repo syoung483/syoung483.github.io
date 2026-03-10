@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模型展示 - 设备选择</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .select-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            color: white;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 180px;
+        }
+        .card h3 {
+            margin: 10px 0 6px;
+            color: #333;
+            text-align: center;
+        }
+        .card p {
+            color: #666;
+            text-align: center;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .card .thumb {
+            font-size: 48px;
+        }
+        .card .btn {
+            margin-top: 12px;
+            width: 100%;
+            max-width: 140px;
+        }
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all .2s;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .select-container {
+                padding: 15px;
+            }
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 12px;
+            }
+            .card {
+                padding: 12px;
+                min-height: 170px;
+            }
+            .card .thumb {
+                font-size: 40px;
+            }
+            .card h3 {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .select-container {
+                padding: 10px;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .card {
+                padding: 15px;
+                min-height: 150px;
+            }
+            .card .thumb {
+                font-size: 36px;
+            }
+            .card h3 {
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div class="select-container">
+            <button class="back-btn" onclick="window.location.href='home.html'">← 返回首页</button>
+            <h1>📦 模型展示 - 选择设备</h1>
+            <p class="subtitle">请选择需要查看的 3D 模型</p>
+            <div class="grid">
+                <div class="card">
+                    <div class="thumb">🏥</div>
+                    <h3>AED 除颤仪</h3>
+                    <p>查看 AED 急救设备的三维模型与动画效果。</p>
+                    <button class="btn" onclick="window.location.href='model-viewer.html?back=model-select.html'">查看模型</button>
+                </div>
+                <div class="card">
+                    <div class="thumb">🧯</div>
+                    <h3>灭火器</h3>
+                    <p>查看你新增的灭火器模型，支持旋转、缩放和动画控制。</p>
+                    <button class="btn" onclick="window.location.href='model-viewer-universal.html?model=灭火器&back=model-select.html'">查看模型</button>
+                </div>
+                <div class="card">
+                    <div class="thumb">🚨</div>
+                    <h3>场外报警设备</h3>
+                    <p>查看场外报警设备模型，支持旋转、缩放和动画控制。</p>
+                    <button class="btn" onclick="window.location.href='model-viewer-universal.html?model=场外报警2&back=model-select.html'">查看模型</button>
+                </div>
+                <div class="card">
+                    <div class="thumb">🏠</div>
+                    <h3>宿舍模型</h3>
+                    <p>查看宿舍场景模型，支持旋转、缩放和动画控制。</p>
+                    <button class="btn" onclick="window.location.href='model-viewer-universal.html?model=宿舍&back=model-select.html'">查看模型</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

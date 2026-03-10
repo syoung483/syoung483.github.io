@@ -17,7 +17,7 @@
                 <button onclick="changeSpeed(0.5)" class="btn">🐌 慢速</button>
                 <button onclick="changeSpeed(1.0)" class="btn">▶️ 正常</button>
                 <button onclick="changeSpeed(2.0)" class="btn">⚡ 快速</button>
-                <button onclick="window.location.href='index.html'" class="btn back-btn">🏠 返回设备列表</button>
+                <button id="backBtn" onclick="goBackTarget()" class="btn back-btn">🏠 返回设备列表</button>
             </div>
         </div>
         <div class="loading" id="loading">正在加载模型资源...</div>
@@ -30,5 +30,15 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
     
     <script src="script.js"></script>
+    <script>
+        function getBackTarget() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('back') || 'model-select.html';
+        }
+
+        function goBackTarget() {
+            window.location.href = getBackTarget();
+        }
+    </script>
 </body>
 </html>
