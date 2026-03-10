@@ -41,7 +41,11 @@
                 <input id="userInput" placeholder="输入你的问题，如：推荐两个适合自驾春游的景点" />
                 <button class="btn" id="sendBtn" onclick="sendMsg()" disabled>发送</button>
             </div>
+<<<<<<< HEAD
             <div class="small" style="margin-top:8px;">提示：已支持自动连接与重连。直接输入问题并发送即可。</div>
+=======
+            <div class="small" style="margin-top:8px;">提示：发送消息时会自动连接；服务端在一轮对话结束后可能主动断开，下一次发送会自动重连。</div>
+>>>>>>> 4c35505 (all)
         </div>
     </div>
 </div>
@@ -55,6 +59,19 @@ let pendingToSend = null; // 等待连接后发送的消息
 let currentAssistantEl = null; // 当前聚合显示的AI答案元素（气泡）
 let currentReasoningEl = null; // 当前推理内容元素（位于答案上方）
 
+<<<<<<< HEAD
+=======
+function getBackendBase(){
+    if (window.location.protocol === 'file:') {
+        return 'http://localhost:3001';
+    }
+    if (window.location.port === '3001') {
+        return window.location.origin;
+    }
+    return `${window.location.protocol}//${window.location.hostname}:3001`;
+}
+
+>>>>>>> 4c35505 (all)
 function createMsg(role, text){
     const list = document.getElementById('msgList');
     const line = document.createElement('div');
@@ -97,12 +114,28 @@ function appendReasoningChunk(content){
     currentReasoningEl.textContent += content;
 }
 
+<<<<<<< HEAD
+=======
+function resetConnectionState(statusText){
+    connected = false;
+    connecting = false;
+    ws = null;
+    document.getElementById('sendBtn').disabled = false;
+    if (statusText) setStatus(statusText);
+}
+
+>>>>>>> 4c35505 (all)
 async function ensureConnected(){
     if (connected || connecting) return;
     setStatus('正在获取签名...');
     connecting = true;
     try {
+<<<<<<< HEAD
         const resp = await fetch('/api/spark-x1/sign');
+=======
+        const resp = await fetch(`${getBackendBase()}/api/spark-x1/sign`);
+        if (!resp.ok) throw new Error(`签名接口请求失败: HTTP ${resp.status}`);
+>>>>>>> 4c35505 (all)
         const data = await resp.json();
         if (!data.success) throw new Error(data.message || '签名失败');
         const url = data.url; appId = data.appId;
@@ -129,10 +162,28 @@ async function ensureConnected(){
                 }
             } catch (e) { console.error('解析消息失败:', e, event.data); }
         };
+<<<<<<< HEAD
         ws.onclose = () => { connected = false; connecting = false; setStatus('已断开'); };
         ws.onerror = (e) => { console.error(e); setStatus('连接出错'); connecting = false; };
     } catch (e) {
         console.error(e); connecting = false; setStatus('签名或连接失败: ' + e.message);
+=======
+        ws.onclose = (event) => {
+            if (event.code === 1000) {
+                resetConnectionState('本轮连接已结束，下次发送将自动重连');
+                return;
+            }
+            resetConnectionState(`已断开 (${event.code}${event.reason ? ': ' + event.reason : ''})`);
+        };
+        ws.onerror = (e) => {
+            console.error(e);
+            resetConnectionState('连接出错，请检查控制台或接口配置');
+        };
+    } catch (e) {
+        console.error(e);
+        connecting = false;
+        setStatus('签名或连接失败: ' + e.message);
+>>>>>>> 4c35505 (all)
     }
 }
 
@@ -159,7 +210,14 @@ function _send(content){
     try { ws.send(JSON.stringify(body)); } catch(e){ console.error(e); setStatus('发送失败: ' + e.message); }
 }
 
+<<<<<<< HEAD
 window.addEventListener('DOMContentLoaded', () => { ensureConnected(); });
+=======
+window.addEventListener('DOMContentLoaded', () => {
+    setStatus('待连接');
+    document.getElementById('sendBtn').disabled = false;
+});
+>>>>>>> 4c35505 (all)
 </script>
 </body>
 </html>

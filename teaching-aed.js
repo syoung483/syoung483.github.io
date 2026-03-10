@@ -4,18 +4,37 @@ let currentModel = null;
 let clock;
 let mixer = null; // 用于播放 glb 内置动画
 
+<<<<<<< HEAD
+=======
+function getViewportSize(){
+    const mount = document.getElementById('threeRef');
+    return {
+        width: Math.max(mount ? mount.clientWidth : window.innerWidth, 320),
+        height: Math.max(mount ? mount.clientHeight : window.innerHeight, 320)
+    };
+}
+
+>>>>>>> 4c35505 (all)
 function initScene(){
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB);
 
+<<<<<<< HEAD
     const width = window.innerWidth - 380; // 右侧面板约 360 + 间距
     const height = window.innerHeight - 40;
+=======
+    const { width, height } = getViewportSize();
+>>>>>>> 4c35505 (all)
     camera = new THREE.PerspectiveCamera(45, width/height, 1, 3000);
     camera.position.set(200, 120, 220);
     camera.lookAt(0,0,0);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
+<<<<<<< HEAD
+=======
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+>>>>>>> 4c35505 (all)
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
@@ -55,11 +74,19 @@ function addGround(){
 }
 
 function onResize(){
+<<<<<<< HEAD
     const width = window.innerWidth - 380;
     const height = window.innerHeight - 40;
     camera.aspect = width/height;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
+=======
+    const { width, height } = getViewportSize();
+    camera.aspect = width/height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+>>>>>>> 4c35505 (all)
 }
 
 function animate(){
