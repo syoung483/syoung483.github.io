@@ -16,7 +16,7 @@ const modelConfig = {
         scale: 5
     },
     '灭火器': {
-        paths: ['大创灭火器.glb', '大创灭火器应用.glb', '灭火器.glb', 'models/灭火器.glb'],
+        paths: ['大创灭火器应用.glb', '大创灭火器.glb', '灭火器.glb', 'models/灭火器.glb'],
         title: '🧯 灭火器',
         scale: 5
     },
@@ -234,7 +234,7 @@ function applyExtinguisherFallbackColors(model) {
 
 function getExtinguisherFallbackColor(meshName) {
     if (meshName.includes('主体') || meshName.includes('柱体')) {
-        return 0xd9343a;
+        return 0xd61f33;
     }
 
     if (meshName.includes('圆环')) {
@@ -245,7 +245,7 @@ function getExtinguisherFallbackColor(meshName) {
         return 0xf3f0e8;
     }
 
-    return 0xd9343a;
+    return 0xd61f33;
 }
 
 // 添加地面
