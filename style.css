@@ -411,6 +411,16 @@ body.viewer-page {
     background: rgba(255, 255, 255, 0.96);
 }
 
+.viewer-mobile-exit {
+    display: none;
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 120;
+    min-height: 42px;
+    padding: 10px 16px;
+}
+
 @media (max-width: 768px) {
     #container {
         padding: 14px;
@@ -460,38 +470,16 @@ body.viewer-page {
         font-size: 0.88rem;
     }
 
-    .viewer-page #info {
-        top: auto;
-        left: 12px;
-        right: 12px;
-        bottom: calc(12px + env(safe-area-inset-bottom));
-        width: auto;
-        max-width: none;
-        max-height: min(48vh, 380px);
-        overflow-y: auto;
-        padding: 18px 16px;
-        border-radius: 20px;
-    }
-
-    .viewer-page #info h1 {
-        font-size: 1.3rem;
-        margin-bottom: 8px;
-    }
-
-    .viewer-page #info p {
-        font-size: 0.94rem;
-        margin-bottom: 12px;
-    }
-
-    .viewer-page .controls {
-        gap: 10px;
-    }
-
     .viewer-page .btn {
         width: 100%;
         min-height: 44px;
         font-size: 0.94rem;
         border-radius: 12px;
+    }
+
+    .viewer-page #info,
+    .viewer-toolbar {
+        display: none;
     }
 
     .viewer-page .loading {
@@ -501,18 +489,16 @@ body.viewer-page {
         padding: 16px;
     }
 
-    .viewer-toolbar {
-        top: 12px;
-        right: 12px;
+    .viewer-mobile-exit {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: auto;
+        min-width: 108px;
+        top: calc(12px + env(safe-area-inset-top));
         left: 12px;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-    }
-
-    .viewer-tool-btn {
-        min-width: 0;
-        padding: 9px 12px;
-        font-size: 0.9rem;
+        padding: 10px 16px;
+        border-radius: 999px;
     }
 }
 
@@ -535,19 +521,11 @@ body.viewer-page {
         margin-bottom: 24px;
     }
 
-    .viewer-page #info {
+    .viewer-mobile-exit {
+        top: calc(10px + env(safe-area-inset-top));
         left: 10px;
-        right: 10px;
-        bottom: calc(10px + env(safe-area-inset-bottom));
-        padding: 14px;
-        max-height: 52vh;
-    }
-
-    .viewer-page #info h1 {
-        font-size: 1.18rem;
-    }
-
-    .viewer-page #info p {
+        min-width: 100px;
+        padding: 9px 14px;
         font-size: 0.88rem;
     }
 }
