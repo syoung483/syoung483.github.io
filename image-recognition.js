@@ -1,16 +1,15 @@
 // 百度AI API配置
 const BAIDU_CONFIG = {
-    appId: '119859712',
-    apiKey: 'qGGnrsPZIvr6ki3QF4c81UgF',
-    secretKey: 'jcbsqhosMsHoLeCTIiIYRdNH1StRNeZR',
-    // 使用后端服务进行图片识别
-    useBackendService: true, // 设置为true时使用后端服务
-    useMockData: false // 设置为false时使用真实API
+    useBackendService: true,
+    useMockData: false
 };
 
 // 全局变量
 let selectedImage = null;
-let accessToken = null;
+
+function getBackendBase() {
+    return getConfiguredBackendBaseUrl();
+}
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', function() {
@@ -22,8 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     recognizeBtn.disabled = true;
     recognizeBtn.textContent = '🔍 请先选择图片';
     
-    // 不再需要获取百度AI access token，使用后端服务
-    console.log('使用后端服务进行图片识别');
+    console.log('当前图片识别将通过后端服务转发请求');
 });
 
 // 初始化上传区域
@@ -128,8 +126,7 @@ async function recognizeImage() {
             // 使用后端服务
             result = await callBackendService();
         } else {
-            // 使用真实百度AI API（前端直接调用）
-            result = await callBaiduAPI();
+            throw new Error('当前版本仅支持通过后端调用识别接口');
         }
         
         // 显示识别结果
@@ -137,7 +134,7 @@ async function recognizeImage() {
         
     } catch (error) {
         console.error('识别失败:', error);
-        showError('图片识别失败，请重试！');
+        showError(error.message || '图片识别失败，请重试！');
     } finally {
         showLoading(false);
     }
@@ -179,14 +176,19 @@ async function mockImageRecognition() {
 // 调用后端服务进行图片识别
 async function callBackendService() {
     try {
+        const backendBase = getBackendBase();
+        if (!backendBase) {
+            throw new Error('未配置后端地址，请在 frontend-config.js 中填写公网后端地址');
+        }
+
         // 创建FormData对象，用于文件上传
         const formData = new FormData();
         formData.append('image', selectedImage);
         
-        console.log('正在调用后端服务进行图片识别...');
+        console.log('正在调用后端服务进行图片识别...', backendBase);
         
         // 调用后端API
-        const response = await fetch('/api/recognize', {
+        const response = await fetch(`${backendBase}/api/recognize`, {
             method: 'POST',
             body: formData
         });
@@ -204,95 +206,6 @@ async function callBackendService() {
         console.error('后端服务调用失败:', error);
         throw new Error(`后端服务调用失败: ${error.message}`);
     }
-}
-
-// 调用百度AI API（需要后端代理）
-async function callBaiduAPI() {
-    if (!accessToken) {
-        throw new Error('Access Token未获取');
-    }
-    
-    // 将图片转换为base64
-    const base64Image = await imageToBase64(selectedImage);
-    
-    // 调用百度AI图像识别API
-    const response = await fetch(`https://aip.baidubce.com/rest/2.0/image-classify/v1/advanced_general?access_token=${accessToken}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: `image=${encodeURIComponent(base64Image)}`
-    });
-    
-    if (!response.ok) {
-        throw new Error('API调用失败');
-    }
-    
-    const data = await response.json();
-    
-    // 处理百度AI返回的结果
-    return processBaiduResult(data);
-}
-
-// 获取百度AI access token
-async function getAccessToken() {
-    try {
-        const response = await fetch(`https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${BAIDU_CONFIG.apiKey}&client_secret=${BAIDU_CONFIG.secretKey}`, {
-            method: 'POST'
-        });
-        
-        if (!response.ok) {
-            throw new Error('获取Access Token失败');
-        }
-        
-        const data = await response.json();
-        accessToken = data.access_token;
-        console.log('Access Token获取成功');
-        
-    } catch (error) {
-        console.error('获取Access Token失败:', error);
-        // 如果获取失败，回退到模拟模式
-        BAIDU_CONFIG.useMockData = true;
-    }
-}
-
-// 将图片转换为base64
-function imageToBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const base64 = e.target.result.split(',')[1];
-            resolve(base64);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-}
-
-// 处理百度AI返回的结果
-function processBaiduResult(data) {
-    if (data.error_code) {
-        throw new Error(`百度AI API错误: ${data.error_msg}`);
-    }
-    
-    const results = data.result || [];
-    
-    // 过滤和映射结果，按置信度降序排序
-    const mappedResults = results
-        .filter(item => item.score > 0.5) // 只显示置信度大于50%的结果
-        .map(item => ({
-            name: item.keyword,
-            score: item.score,
-            description: item.root || '未知类别',
-            modelLink: getModelLink(item.keyword)
-        }))
-        .sort((a, b) => b.score - a.score) // 按置信度降序排序
-        .slice(0, 5); // 只显示前5个结果
-    
-    return {
-        success: true,
-        results: mappedResults
-    };
 }
 
 // 处理后端返回的结果

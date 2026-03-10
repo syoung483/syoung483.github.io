@@ -7,7 +7,17 @@
     "start": "npx http-server -p 8080 -c-1",
     "dev": "npx live-server --port=8080"
   },
-  "keywords": ["three.js", "3d", "model", "emergency", "safety", "education"],
+  "keywords": [
+    "three.js",
+    "3d",
+    "model",
+    "emergency",
+    "safety",
+    "education"
+  ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "busboy": "^1.6.0"
+  }
 }

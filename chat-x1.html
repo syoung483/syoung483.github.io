@@ -115,6 +115,7 @@
     </div>
 </div>
 
+<script src="frontend-config.js"></script>
 <script>
 let ws = null;
 let appId = '';
@@ -125,13 +126,7 @@ let currentAssistantEl = null; // 当前聚合显示的AI答案元素（气泡�
 let currentReasoningEl = null; // 当前推理内容元素（位于答案上方）
 
 function getBackendBase(){
-    if (window.location.protocol === 'file:') {
-        return 'http://localhost:3001';
-    }
-    if (window.location.port === '3001') {
-        return window.location.origin;
-    }
-    return `${window.location.protocol}//${window.location.hostname}:3001`;
+    return getConfiguredBackendBaseUrl();
 }
 function createMsg(role, text){
     const list = document.getElementById('msgList');
@@ -187,7 +182,12 @@ async function ensureConnected(){
     setStatus('正在获取签名...');
     connecting = true;
     try {
-        const resp = await fetch(`${getBackendBase()}/api/spark-x1/sign`);
+        const backendBase = getBackendBase();
+        if (!backendBase) {
+            throw new Error('未配置后端地址，请在 frontend-config.js 中填写公网后端地址');
+        }
+
+        const resp = await fetch(`${backendBase}/api/spark-x1/sign`);
         if (!resp.ok) throw new Error(`签名接口请求失败: HTTP ${resp.status}`);
         const data = await resp.json();
         if (!data.success) throw new Error(data.message || '签名失败');
@@ -257,7 +257,7 @@ function _send(content){
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    setStatus('待连接');
+    setStatus(getBackendBase() ? '待连接' : '未配置后端地址');
     document.getElementById('sendBtn').disabled = false;
 });
 </script>

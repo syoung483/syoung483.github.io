@@ -1,0 +1,22 @@
+[build]
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/health"
+  status = 200
+
+[[redirects]]
+  from = "/api/test-baidu"
+  to = "/.netlify/functions/test-baidu"
+  status = 200
+
+[[redirects]]
+  from = "/api/recognize"
+  to = "/.netlify/functions/recognize"
+  status = 200
+
+[[redirects]]
+  from = "/api/spark-x1/sign"
+  to = "/.netlify/functions/spark-x1-sign"
+  status = 200
