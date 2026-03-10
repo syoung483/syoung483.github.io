@@ -195,18 +195,12 @@ function getModelLink(keyword) {
         '心脏除颤器': 'model-viewer.html',
         '体外除颤器': 'model-viewer.html',
         '除颤': 'model-viewer.html',
-<<<<<<< HEAD
-        '灭火器': '#',
-        '消防栓': '#',
-        '急救包': '#',
-=======
         '灭火器': 'model-viewer-universal.html?model=灭火器',
         '消防栓': '#',
         '急救包': '#',
         '报警': 'model-viewer-universal.html?model=场外报警2',
         '报警器': 'model-viewer-universal.html?model=场外报警2',
         '宿舍': 'model-viewer-universal.html?model=宿舍',
->>>>>>> 4c35505 (all)
         '医疗': '#'
     };
     
