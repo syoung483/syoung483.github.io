@@ -101,6 +101,10 @@ function init() {
 function initLights() {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
+
+    const hemisphereLight = new THREE.HemisphereLight(0xf8fbff, 0xd9e3ef, runtimeConfig.reduceQuality ? 0.4 : 0.55);
+    hemisphereLight.position.set(0, 180, 0);
+    scene.add(hemisphereLight);
     
     const directionalLight = new THREE.DirectionalLight(0xffffff, runtimeConfig.reduceQuality ? 0.7 : 0.8);
     directionalLight.position.set(100, 100, 50);
@@ -111,6 +115,10 @@ function initLights() {
         const pointLight = new THREE.PointLight(0xffffff, 0.5);
         pointLight.position.set(-100, 100, -100);
         scene.add(pointLight);
+
+        const rimLight = new THREE.DirectionalLight(0xffffff, 0.24);
+        rimLight.position.set(-60, 80, 140);
+        scene.add(rimLight);
     }
 }
 
@@ -215,12 +223,9 @@ function applyExtinguisherFallbackColors(model) {
         }
 
         const meshName = String(child.name || '').trim();
+        const partStyle = getExtinguisherFallbackStyle(child, meshName);
         const baseMaterial = Array.isArray(child.material) ? child.material[0] : child.material;
-        const fallbackMaterial = new THREE.MeshStandardMaterial({
-            color: getExtinguisherFallbackColor(meshName),
-            metalness: meshName.includes('圆环') ? 0.2 : 0.08,
-            roughness: meshName.includes('圆环') ? 0.55 : 0.78
-        });
+        const fallbackMaterial = createExtinguisherMaterial(partStyle);
 
         if (baseMaterial) {
             fallbackMaterial.transparent = Boolean(baseMaterial.transparent);
@@ -232,20 +237,101 @@ function applyExtinguisherFallbackColors(model) {
     });
 }
 
-function getExtinguisherFallbackColor(meshName) {
+function createExtinguisherMaterial(partStyle) {
+    if (partStyle.materialType === 'paintedMetal') {
+        return new THREE.MeshPhysicalMaterial({
+            color: partStyle.color,
+            metalness: partStyle.metalness,
+            roughness: partStyle.roughness,
+            clearcoat: partStyle.clearcoat,
+            clearcoatRoughness: partStyle.clearcoatRoughness
+        });
+    }
+
+    return new THREE.MeshStandardMaterial({
+        color: partStyle.color,
+        metalness: partStyle.metalness,
+        roughness: partStyle.roughness
+    });
+}
+
+function getExtinguisherFallbackStyle(child, meshName) {
+    const y = Number(child.position ? child.position.y : 0);
+    const x = Number(child.position ? child.position.x : 0);
+
     if (meshName.includes('主体') || meshName.includes('柱体')) {
-        return 0xe60012;
+        if (y > 4.2) {
+            return {
+                materialType: 'rubber',
+                color: 0x151515,
+                metalness: 0.04,
+                roughness: 0.68
+            };
+        }
+
+        return {
+            materialType: 'paintedMetal',
+            color: 0xe1251b,
+            metalness: 0.28,
+            roughness: 0.42,
+            clearcoat: 0.82,
+            clearcoatRoughness: 0.18
+        };
     }
 
     if (meshName.includes('圆环')) {
-        return 0x2d313a;
+        if (y > 4.2) {
+            return {
+                materialType: 'brass',
+                color: 0xc8a33a,
+                metalness: 0.82,
+                roughness: 0.28
+            };
+        }
+
+        return {
+            materialType: 'metal',
+            color: 0xb8bdc7,
+            metalness: 0.9,
+            roughness: 0.24
+        };
     }
 
     if (meshName.includes('平面')) {
-        return 0xf3f0e8;
+        if (y > 4.6) {
+            return {
+                materialType: 'rubber',
+                color: x < -0.2 ? 0x1b1b1d : 0x202226,
+                metalness: 0.03,
+                roughness: 0.76
+            };
+        }
+
+        if (x < -0.6 || y < 2) {
+            return {
+                materialType: 'rubber',
+                color: 0x1d1c20,
+                metalness: 0.03,
+                roughness: 0.78
+            };
+        }
+
+        return {
+            materialType: 'label',
+            color: 0xf1ece3,
+            metalness: 0.02,
+            roughness: 0.9
+        };
     }
 
-    return 0xe60012;
+    return {
+        materialType: 'paintedMetal',
+        color: 0xe1251b,
+        metalness: 0.28,
+        roughness: 0.42,
+        clearcoat: 0.82,
+        clearcoatRoughness: 0.18
+    };
 }
 
 // 添加地面
