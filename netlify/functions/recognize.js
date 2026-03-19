@@ -1,8 +1,6 @@
 const Busboy = require('busboy');
 const {
-    getBaiduAccessToken,
-    getDescription,
-    getModelLink,
+    recognizeWithZhipuBuffer,
     handleOptions,
     jsonResponse
 } = require('./_shared');
@@ -25,9 +23,11 @@ function parseMultipartImage(event) {
         const chunks = [];
         let hasFile = false;
         let fileTooLarge = false;
+        let mimeType = 'image/jpeg';
 
-        busboy.on('file', (_fieldname, file) => {
+        busboy.on('file', (_fieldname, file, info) => {
             hasFile = true;
+            mimeType = info && info.mimeType ? info.mimeType : mimeType;
 
             file.on('data', (chunk) => {
                 chunks.push(chunk);
@@ -49,7 +49,10 @@ function parseMultipartImage(event) {
                 return;
             }
 
-            resolve(Buffer.concat(chunks));
+            resolve({
+                buffer: Buffer.concat(chunks),
+                mimeType
+            });
         });
 
         busboy.on('error', reject);
@@ -70,45 +73,13 @@ exports.handler = async (event) => {
     }
 
     try {
-        const imageBuffer = await parseMultipartImage(event);
-        const token = await getBaiduAccessToken();
-        const base64Image = imageBuffer.toString('base64');
-
-        const apiUrl = `https://aip.baidubce.com/rest/2.0/image-classify/v2/advanced_general?access_token=${token}`;
-        const requestBody = new URLSearchParams({
-            image: base64Image,
-            baike_num: '3'
-        });
-
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: requestBody.toString()
-        });
-
-        const data = await response.json();
-        if (!response.ok || data.error_code) {
-            throw new Error(`百度AI API错误: ${data.error_msg || response.statusText}`);
-        }
-
-        const results = (data.result || [])
-            .filter((item) => item.score > 0.2)
-            .map((item) => ({
-                name: item.keyword,
-                score: item.score,
-                description: getDescription(item.keyword, item.root, item.baike_info),
-                modelLink: getModelLink(item.keyword),
-                type: '通用物体识别',
-                baikeInfo: item.baike_info
-            }))
-            .slice(0, 8);
+        const imageFile = await parseMultipartImage(event);
+        const recognition = await recognizeWithZhipuBuffer(imageFile.buffer, imageFile.mimeType);
 
         return jsonResponse(200, {
             success: true,
-            results,
-            mode: '真实API'
+            results: recognition.results,
+            mode: `Zhipu ${recognition.model}`
         });
     } catch (error) {
         return jsonResponse(500, {

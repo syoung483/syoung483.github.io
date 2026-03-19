@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频教学</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .video-page {
+            max-width: 1180px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(280px, 360px);
+            gap: 22px;
+            padding: 8px 0 24px;
+            align-items: start;
+        }
+        .video-stage,
+        .video-panel {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.82);
+            border-radius: 24px;
+            box-shadow: 0 20px 36px rgba(17, 28, 68, 0.12);
+            backdrop-filter: blur(18px);
+        }
+        .video-stage {
+            padding: 18px;
+        }
+        .video-panel {
+            padding: 20px;
+            color: #1b2540;
+        }
+        .video-shell {
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #0f172a;
+            aspect-ratio: 16 / 9;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+        }
+        #teachingVideo {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #020617;
+        }
+        .video-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(2, 6, 23, 0.16), rgba(2, 6, 23, 0.52));
+            transition: opacity 0.22s ease;
+        }
+        .video-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-btn {
+            min-width: 160px;
+            padding: 14px 22px;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #5b73ff, #48c6ef);
+            box-shadow: 0 14px 28px rgba(72, 118, 255, 0.26);
+        }
+        .page-top {
+            max-width: 1180px;
+            margin: 0 auto 14px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px 20px;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.62));
+            border: 1px solid rgba(255,255,255,0.86);
+            box-shadow: 0 16px 30px rgba(88, 104, 163, 0.12);
+            backdrop-filter: blur(18px);
+        }
+        .page-top-text {
+            color: #1b2540;
+        }
+        .page-top-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            margin-bottom: 8px;
+            border-radius: 999px;
+            background: rgba(91, 115, 255, 0.1);
+            color: #4560d3;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+        .page-top h1 {
+            font-size: 1.68rem;
+            line-height: 1.2;
+            margin-bottom: 8px;
+        }
+        .page-top p,
+        .video-panel p {
+            color: #63708d;
+            line-height: 1.7;
+        }
+        .video-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 14px 0 18px;
+        }
+        .video-meta span {
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(91, 115, 255, 0.08);
+            color: #3d58cb;
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+        .video-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        .video-link-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            min-height: 46px;
+        }
+        .video-hint {
+            margin-top: 14px;
+            font-size: 0.88rem;
+            color: #6b7691;
+        }
+        @media (max-width: 900px) {
+            .video-page {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 640px) {
+            .page-top {
+                flex-direction: column;
+                padding: calc(12px + env(safe-area-inset-top)) 14px 14px;
+                border-radius: 20px;
+            }
+            .page-top h1 {
+                font-size: 1.24rem;
+            }
+            .video-stage,
+            .video-panel {
+                padding: 14px;
+                border-radius: 20px;
+            }
+            .play-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div class="page-top">
+            <div class="page-top-text">
+                <span class="page-top-badge" id="pageBadge">视频教学</span>
+                <h1 id="pageTitle">设备使用教学</h1>
+                <p id="pageDescription">点击播放按钮即可开始观看当前设备的使用演示视频。</p>
+            </div>
+            <button class="back-btn" onclick="window.location.href='usage-select.html'">← 返回教学列表</button>
+        </div>
+
+        <div class="video-page">
+            <section class="video-stage">
+                <div class="video-shell">
+                    <video id="teachingVideo" controls playsinline preload="metadata"></video>
+                    <div class="video-overlay" id="videoOverlay">
+                        <button class="play-btn" id="playBtn" type="button">播放教学视频</button>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="video-panel">
+                <h2 id="panelTitle">教学内容</h2>
+                <p id="panelText">当前页面会加载与设备对应的教学视频。</p>
+                <div class="video-meta">
+                    <span id="metaTag1">操作演示</span>
+                    <span id="metaTag2">点击播放</span>
+                    <span id="metaTag3">支持全屏</span>
+                </div>
+                <div class="video-actions">
+                    <button class="btn" id="playActionBtn" type="button">重新播放</button>
+                    <a class="btn video-link-btn" id="modelLinkBtn" href="usage-select.html">查看对应模型</a>
+                </div>
+                <p class="video-hint" id="videoHint">如果浏览器未自动播放，点击上方按钮即可开始观看。</p>
+            </aside>
+        </div>
+    </div>
+
+    <script src="teaching-video.js"></script>
+</body>
+</html>

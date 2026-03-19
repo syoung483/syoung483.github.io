@@ -151,13 +151,13 @@ async function mockImageRecognition() {
             name: 'AED除颤仪',
             score: 0.95,
             description: '自动体外除颤器，用于心脏骤停的紧急救治',
-            modelLink: 'model-viewer.html'
+            modelLink: 'teaching-aed.html'
         },
         {
             name: '灭火器',
             score: 0.87,
             description: '灭火器是一种可携式灭火工具。灭火器内放置化学物品，用以救灭火灾。灭火器是常见的消防器材之一，存放在公众场所或可能发生火灾的地方，不同种类的灭火器内装填的成分不一样，是专为不同的火灾起因而设。',
-            modelLink: '#'
+            modelLink: 'teaching-video.html?device=灭火器'
         },
         {
             name: '急救包',
@@ -234,18 +234,18 @@ function processBackendResult(data) {
     };
 }
 
-// 根据识别结果获取对应的3D模型链接
+// 根据识别结果获取对应的使用教学链接
 function getModelLink(keyword) {
     const keywordMap = {
-        'AED': 'model-viewer.html',
-        '除颤仪': 'model-viewer.html',
-        '除颤器': 'model-viewer.html',
-        '灭火器': 'model-viewer-universal.html?model=灭火器',
+        'AED': 'teaching-aed.html',
+        '除颤仪': 'teaching-aed.html',
+        '除颤器': 'teaching-aed.html',
+        '灭火器': 'teaching-video.html?device=灭火器',
         '消防栓': '#',
         '急救包': '#',
-        '报警': 'model-viewer-universal.html?model=场外报警2',
-        '报警器': 'model-viewer-universal.html?model=场外报警2',
-        '宿舍': 'model-viewer-universal.html?model=宿舍',
+        '报警': 'teaching-video.html?device=场外报警2',
+        '报警器': 'teaching-video.html?device=场外报警2',
+        '宿舍': 'teaching-video.html?device=宿舍',
         '医疗': '#'
     };
     
@@ -275,8 +275,8 @@ function showRecognitionResult(data) {
         const scorePercent = Math.round(bestResult.score * 100);
         const typeBadge = bestResult.type ? `<span style="background: #007bff; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 10px;">${bestResult.type}</span>` : '';
         const modelButton = bestResult.modelLink !== '#' 
-            ? `<button class="recognition-btn" onclick="window.location.href='${bestResult.modelLink}'" style="background: #007bff; margin-top: 10px;">🎯 查看3D模型</button>`
-            : '<span style="color: #6c757d; font-size: 14px;">3D模型开发中</span>';
+            ? `<button class="recognition-btn" onclick="window.location.href='${bestResult.modelLink}'" style="background: #007bff; margin-top: 10px;">🎓 进入使用教学</button>`
+            : '<span style="color: #6c757d; font-size: 14px;">暂无对应教学页面</span>';
         
         // 智能截断描述文字
         const maxLength = 80; // 减少截断长度，确保有明显的截断效果

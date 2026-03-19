@@ -3,6 +3,28 @@ const crypto = require('crypto');
 let baiduAccessToken = null;
 let baiduTokenExpireTime = 0;
 let legacyConfig = null;
+const ZHIPU_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+const ZHIPU_RECOGNITION_PROMPT = [
+    '请识别这张图片中的主要物体、设备或场景，并给出尽可能具体、准确的名称。',
+    '',
+    '要求：',
+    '1. 返回最可能的 5 个结果，按置信度从高到低排序',
+    '2. 每个结果包含 name、confidence、description',
+    '3. 如果识别的是设备，请尽量使用具体设备名称，不要只返回“工具”“机器”“装置”这类泛化名称',
+    '4. 如果图片内容模糊或无法判断，可以返回较低置信度结果',
+    '5. 只返回 JSON，不要输出其他文字',
+    '',
+    '返回格式：',
+    '{',
+    '  "results": [',
+    '    {',
+    '      "name": "",',
+    '      "confidence": 0.0,',
+    '      "description": ""',
+    '    }',
+    '  ]',
+    '}'
+].join('\n');
 
 function getLegacyConfig() {
     if (legacyConfig !== null) {
@@ -53,12 +75,17 @@ function getConfig() {
     const legacy = getLegacyConfig();
     const legacyBaidu = legacy.BAIDU_CONFIG || {};
     const legacySpark = legacy.SPARK_X1 || {};
+    const legacyZhipu = legacy.ZHIPU_CONFIG || {};
 
     return {
         baidu: {
             appId: process.env.BAIDU_APP_ID || process.env.BAIDU_AI_APP_ID || legacyBaidu.appId || '',
             apiKey: process.env.BAIDU_API_KEY || legacyBaidu.apiKey || '',
             secretKey: process.env.BAIDU_SECRET_KEY || legacyBaidu.secretKey || ''
+        },
+        zhipu: {
+            apiKey: process.env.ZHIPU_API_KEY || legacyZhipu.apiKey || '',
+            model: process.env.ZHIPU_MODEL || legacyZhipu.model || 'glm-4v-flash'
         },
         spark: {
             appId: process.env.SPARK_X1_APP_ID || legacySpark.appId || '',
@@ -134,19 +161,19 @@ function getDescription(keyword, root, baikeInfo) {
 
 function getModelLink(keyword) {
     const keywordMap = {
-        'AED': 'model-viewer.html',
-        '除颤仪': 'model-viewer.html',
-        '除颤器': 'model-viewer.html',
-        '自动体外除颤器': 'model-viewer.html',
-        '心脏除颤器': 'model-viewer.html',
-        '体外除颤器': 'model-viewer.html',
-        '除颤': 'model-viewer.html',
-        '灭火器': 'model-viewer-universal.html?model=灭火器',
+        'AED': 'teaching-aed.html',
+        '除颤仪': 'teaching-aed.html',
+        '除颤器': 'teaching-aed.html',
+        '自动体外除颤器': 'teaching-aed.html',
+        '心脏除颤器': 'teaching-aed.html',
+        '体外除颤器': 'teaching-aed.html',
+        '除颤': 'teaching-aed.html',
+        '灭火器': 'teaching-video.html?device=灭火器',
         '消防栓': '#',
         '急救包': '#',
-        '报警': 'model-viewer-universal.html?model=场外报警2',
-        '报警器': 'model-viewer-universal.html?model=场外报警2',
-        '宿舍': 'model-viewer-universal.html?model=宿舍',
+        '报警': 'teaching-video.html?device=场外报警2',
+        '报警器': 'teaching-video.html?device=场外报警2',
+        '宿舍': 'teaching-video.html?device=宿舍',
         '医疗': '#'
     };
 
@@ -157,6 +184,141 @@ function getModelLink(keyword) {
     }
 
     return '#';
+}
+
+function normalizeAssistantContent(content) {
+    if (typeof content === 'string') {
+        return content.trim();
+    }
+
+    if (Array.isArray(content)) {
+        return content
+            .map((item) => {
+                if (typeof item === 'string') {
+                    return item;
+                }
+
+                if (item && typeof item.text === 'string') {
+                    return item.text;
+                }
+
+                return '';
+            })
+            .join('\n')
+            .trim();
+    }
+
+    return String(content || '').trim();
+}
+
+function extractJsonPayload(text) {
+    const fencedMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (fencedMatch) {
+        return fencedMatch[1].trim();
+    }
+
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+        return text.slice(firstBrace, lastBrace + 1);
+    }
+
+    return text;
+}
+
+function normalizeConfidence(value, fallback) {
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) {
+        return Math.min(1, Math.max(0, numeric));
+    }
+
+    return fallback;
+}
+
+function parseZhipuRecognitionResult(content) {
+    const normalizedContent = normalizeAssistantContent(content);
+    const jsonPayload = extractJsonPayload(normalizedContent);
+
+    let parsed;
+    try {
+        parsed = JSON.parse(jsonPayload);
+    } catch (_error) {
+        throw new Error('智谱返回结果不是有效 JSON');
+    }
+
+    const rawResults = Array.isArray(parsed.results) ? parsed.results : [];
+    return rawResults
+        .map((item, index) => {
+            const name = String(item && item.name ? item.name : '未知类别').trim();
+            const description = String(item && item.description ? item.description : '暂无描述').trim();
+            const fallbackScore = Math.max(0.1, 0.85 - index * 0.12);
+            const score = normalizeConfidence(item && item.confidence, fallbackScore);
+
+            return {
+                name,
+                score,
+                description,
+                modelLink: getModelLink(name),
+                type: '智谱 GLM-4V-Flash'
+            };
+        })
+        .filter((item) => item.name);
+}
+
+async function recognizeWithZhipuBuffer(imageBuffer, mimeType = 'image/jpeg') {
+    const { zhipu } = getConfig();
+    if (!zhipu.apiKey) {
+        throw new Error('未配置 ZHIPU_API_KEY');
+    }
+
+    const base64Image = imageBuffer.toString('base64');
+    const response = await fetch(ZHIPU_API_URL, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${zhipu.apiKey}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: zhipu.model,
+            temperature: 0.1,
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'image_url',
+                            image_url: {
+                                url: `data:${mimeType};base64,${base64Image}`
+                            }
+                        },
+                        {
+                            type: 'text',
+                            text: ZHIPU_RECOGNITION_PROMPT
+                        }
+                    ]
+                }
+            ]
+        })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.error?.message || data.message || '智谱识别请求失败');
+    }
+
+    const content = data && data.choices && data.choices[0] && data.choices[0].message
+        ? data.choices[0].message.content
+        : '';
+    const results = parseZhipuRecognitionResult(content).slice(0, 8);
+
+    if (results.length === 0) {
+        throw new Error('智谱未返回有效识别结果');
+    }
+
+    return {
+        model: zhipu.model,
+        results
+    };
 }
 
 function buildSparkSignedUrl() {
@@ -188,6 +350,7 @@ function buildSparkSignedUrl() {
 module.exports = {
     getConfig,
     getBaiduAccessToken,
+    recognizeWithZhipuBuffer,
     getDescription,
     getModelLink,
     buildSparkSignedUrl,

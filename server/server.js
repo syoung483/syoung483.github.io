@@ -5,7 +5,7 @@ const cors = require('cors');
 const multer = require('multer');
 const axios = require('axios');
 const crypto = require('crypto');
-const { BAIDU_CONFIG, SERVER_CONFIG, SPARK_X1 } = require('./config');
+const { SERVER_CONFIG, SPARK_X1, ZHIPU_CONFIG } = require('./config');
 
 const app = express();
 
@@ -20,52 +20,173 @@ const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB限制
 });
 
-// 全局变量
-let accessToken = null;
-let tokenExpireTime = 0;
+const ZHIPU_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+const ZHIPU_RECOGNITION_PROMPT = [
+    '请识别这张图片中的主要物体、设备或场景，并给出尽可能具体、准确的名称。',
+    '',
+    '要求：',
+    '1. 返回最可能的 5 个结果，按置信度从高到低排序',
+    '2. 每个结果包含 name、confidence、description',
+    '3. 如果识别的是设备，请尽量使用具体设备名称，不要只返回“工具”“机器”“装置”这类泛化名称',
+    '4. 如果图片内容模糊或无法判断，可以返回较低置信度结果',
+    '5. 只返回 JSON，不要输出其他文字',
+    '',
+    '返回格式：',
+    '{',
+    '  "results": [',
+    '    {',
+    '      "name": "",',
+    '      "confidence": 0.0,',
+    '      "description": ""',
+    '    }',
+    '  ]',
+    '}'
+].join('\n');
 
-// 获取百度AI access token
-async function getAccessToken() {
-    const now = Date.now();
-    
-    // 如果token还有效，直接返回
-    if (accessToken && now < tokenExpireTime) {
-        return accessToken;
+function getZhipuApiKey() {
+    const apiKey = String(ZHIPU_CONFIG.apiKey || '').trim();
+    if (!apiKey) {
+        throw new Error('未配置 ZHIPU_API_KEY，请先在 server/.env 中填写智谱 API Key');
     }
-    
+
+    return apiKey;
+}
+
+function normalizeAssistantContent(content) {
+    if (typeof content === 'string') {
+        return content.trim();
+    }
+
+    if (Array.isArray(content)) {
+        return content
+            .map((item) => {
+                if (typeof item === 'string') {
+                    return item;
+                }
+
+                if (item && typeof item.text === 'string') {
+                    return item.text;
+                }
+
+                return '';
+            })
+            .join('\n')
+            .trim();
+    }
+
+    return String(content || '').trim();
+}
+
+function extractJsonPayload(text) {
+    const fencedMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (fencedMatch) {
+        return fencedMatch[1].trim();
+    }
+
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+        return text.slice(firstBrace, lastBrace + 1);
+    }
+
+    return text;
+}
+
+function normalizeConfidence(value, fallback) {
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) {
+        return Math.min(1, Math.max(0, numeric));
+    }
+
+    return fallback;
+}
+
+function parseZhipuRecognitionResult(content) {
+    const normalizedContent = normalizeAssistantContent(content);
+    const jsonPayload = extractJsonPayload(normalizedContent);
+
+    let parsed;
     try {
-        console.log('正在获取百度AI access token...');
-        console.log('使用的API Key:', BAIDU_CONFIG.apiKey);
-        console.log('使用的Secret Key:', BAIDU_CONFIG.secretKey ? '***' + BAIDU_CONFIG.secretKey.slice(-4) : '未设置');
-        
-        const response = await axios.post(
-            'https://aip.baidubce.com/oauth/2.0/token',
-            null,
-            {
-                params: {
-                    grant_type: 'client_credentials',
-                    client_id: BAIDU_CONFIG.apiKey,
-                    client_secret: BAIDU_CONFIG.secretKey
-                },
-                timeout: 10000 // 10秒超时
-            }
-        );
-        
-        console.log('Token响应:', JSON.stringify(response.data, null, 2));
-        
-        accessToken = response.data.access_token;
-        tokenExpireTime = now + (response.data.expires_in - 60) * 1000; // 提前60秒过期
-        
-        console.log('✅ Access Token获取成功');
-        return accessToken;
-        
+        parsed = JSON.parse(jsonPayload);
     } catch (error) {
-        console.error('❌ 获取Access Token失败:', error.message);
-        if (error.response) {
-            console.error('错误响应:', error.response.data);
-        }
-        throw new Error('获取API访问令牌失败');
+        throw new Error('智谱返回结果不是有效 JSON');
     }
+
+    const rawResults = Array.isArray(parsed.results) ? parsed.results : [];
+    return rawResults
+        .map((item, index) => {
+            const name = String(item && item.name ? item.name : '未知类别').trim();
+            const description = String(item && item.description ? item.description : '暂无描述').trim();
+            const fallbackScore = Math.max(0.1, 0.85 - index * 0.12);
+            const score = normalizeConfidence(item && item.confidence, fallbackScore);
+
+            return {
+                name,
+                score,
+                description,
+                modelLink: getModelLink(name),
+                type: '智谱 GLM-4V-Flash'
+            };
+        })
+        .filter((item) => item.name);
+}
+
+async function callZhipuChat(messages) {
+    const response = await axios.post(
+        ZHIPU_API_URL,
+        {
+            model: ZHIPU_CONFIG.model,
+            messages,
+            temperature: 0.1
+        },
+        {
+            headers: {
+                Authorization: `Bearer ${getZhipuApiKey()}`,
+                'Content-Type': 'application/json'
+            },
+            timeout: 30000
+        }
+    );
+
+    return response.data;
+}
+
+async function recognizeWithZhipu(file) {
+    const base64Image = file.buffer.toString('base64');
+    const mimeType = file.mimetype || 'image/jpeg';
+
+    console.log('正在调用智谱 GLM-4V-Flash 进行图片识别...');
+    console.log('图片大小:', base64Image.length, '字符');
+
+    const data = await callZhipuChat([
+        {
+            role: 'user',
+            content: [
+                {
+                    type: 'image_url',
+                    image_url: {
+                        url: `data:${mimeType};base64,${base64Image}`
+                    }
+                },
+                {
+                    type: 'text',
+                    text: ZHIPU_RECOGNITION_PROMPT
+                }
+            ]
+        }
+    ]);
+
+    const content = data && data.choices && data.choices[0] && data.choices[0].message
+        ? data.choices[0].message.content
+        : '';
+    const results = parseZhipuRecognitionResult(content).slice(0, 8);
+
+    if (results.length === 0) {
+        throw new Error('智谱未返回有效识别结果');
+    }
+
+    console.log('智谱识别结果:', results);
+    return results;
 }
 
 // 图片识别API接口
@@ -75,70 +196,13 @@ app.post('/api/recognize', upload.single('image'), async (req, res) => {
             return res.status(400).json({ error: '请上传图片文件' });
         }
         
-        // 获取access token
-        const token = await getAccessToken();
-        
-        // 将图片转换为base64
-        const base64Image = req.file.buffer.toString('base64');
-        
-        console.log('正在调用百度AI API进行图片识别...');
-        console.log('图片大小:', base64Image.length, '字符');
-        
-        // 使用标准的百度AI通用物体识别API v2版本（方式一）
-        const apiUrl = `https://aip.baidubce.com/rest/2.0/image-classify/v2/advanced_general?access_token=${token}`;
-        console.log('完整API URL:', apiUrl);
-        
-        // 构建请求体 - 使用标准的form-urlencoded格式，包含百科信息
-        const requestBody = `image=${encodeURIComponent(base64Image)}&baike_num=3`;
-        console.log('请求体长度:', requestBody.length);
-        
-        // 使用POST方法调用百度AI API（方式一）
-        console.log('使用POST方法调用标准API...');
-        console.log('请求头:', { 'Content-Type': 'application/x-www-form-urlencoded' });
-        
-        const response = await axios.post(
-            apiUrl,
-            requestBody,
-            {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                timeout: 30000 // 30秒超时
-            }
-        );
-        console.log('API调用成功');
-        
-        const data = response.data;
-        console.log('百度AI API响应:', JSON.stringify(data, null, 2));
-        
-        if (data.error_code) {
-            throw new Error(`百度AI API错误: ${data.error_msg} (错误代码: ${data.error_code})`);
-        }
-        
-        // 处理标准API返回结果
-        const results = data.result || [];
-        console.log('原始识别结果:', results);
-        
-        const mappedResults = results
-            .filter(item => item.score > 0.2) // 降低阈值到20%，增加识别机会
-            .map(item => ({
-                name: item.keyword,
-                score: item.score,
-                description: getDescription(item.keyword, item.root, item.baike_info),
-                modelLink: getModelLink(item.keyword),
-                type: '通用物体识别',
-                baikeInfo: item.baike_info
-            }))
-            .slice(0, 8);
-        
-        console.log('处理后的结果:', mappedResults);
-        
-        console.log('✅ 识别完成，返回结果');
-        
+        const results = await recognizeWithZhipu(req.file);
+        console.log('✅ 智谱识别完成，返回结果');
+
         res.json({
             success: true,
-            results: mappedResults,
-            mode: '真实API'
+            results,
+            mode: 'Zhipu GLM-4V-Flash'
         });
         
     } catch (error) {
@@ -187,22 +251,22 @@ function getDescription(keyword, root, baikeInfo) {
     return root || '未知类别';
 }
 
-// 根据识别结果获取对应的3D模型链接
+// 根据识别结果获取对应的使用教学链接
 function getModelLink(keyword) {
     const keywordMap = {
-        'AED': 'model-viewer.html',
-        '除颤仪': 'model-viewer.html',
-        '除颤器': 'model-viewer.html',
-        '自动体外除颤器': 'model-viewer.html',
-        '心脏除颤器': 'model-viewer.html',
-        '体外除颤器': 'model-viewer.html',
-        '除颤': 'model-viewer.html',
-        '灭火器': 'model-viewer-universal.html?model=灭火器',
+        'AED': 'teaching-aed.html',
+        '除颤仪': 'teaching-aed.html',
+        '除颤器': 'teaching-aed.html',
+        '自动体外除颤器': 'teaching-aed.html',
+        '心脏除颤器': 'teaching-aed.html',
+        '体外除颤器': 'teaching-aed.html',
+        '除颤': 'teaching-aed.html',
+        '灭火器': 'teaching-video.html?device=灭火器',
         '消防栓': '#',
         '急救包': '#',
-        '报警': 'model-viewer-universal.html?model=场外报警2',
-        '报警器': 'model-viewer-universal.html?model=场外报警2',
-        '宿舍': 'model-viewer-universal.html?model=宿舍',
+        '报警': 'teaching-video.html?device=场外报警2',
+        '报警器': 'teaching-video.html?device=场外报警2',
+        '宿舍': 'teaching-video.html?device=宿舍',
         '医疗': '#'
     };
     
@@ -224,25 +288,38 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// 测试百度AI API接口
-app.get('/api/test-baidu', async (req, res) => {
+// 测试智谱 API 接口
+async function handleZhipuTest(_req, res) {
     try {
-        const token = await getAccessToken();
+        const data = await callZhipuChat([
+            {
+                role: 'user',
+                content: '请只回复 ok'
+            }
+        ]);
+
         res.json({
             status: 'ok',
-            message: '百度AI API连接正常',
-            hasToken: !!token,
+            message: '智谱 AI API连接正常',
+            model: ZHIPU_CONFIG.model,
+            hasApiKey: Boolean(String(ZHIPU_CONFIG.apiKey || '').trim()),
+            reply: normalizeAssistantContent(data && data.choices && data.choices[0] && data.choices[0].message
+                ? data.choices[0].message.content
+                : ''),
             timestamp: new Date().toISOString()
         });
     } catch (error) {
         res.status(500).json({
             status: 'error',
-            message: '百度AI API连接失败',
+            message: '智谱 AI API连接失败',
             error: error.message,
             timestamp: new Date().toISOString()
         });
     }
-});
+}
+
+app.get('/api/test-zhipu', handleZhipuTest);
+app.get('/api/test-baidu', handleZhipuTest);
 
 // 生成星火X1的带签名WebSocket URL（有效期1分钟）
 app.get('/api/spark-x1/sign', (req, res) => {
@@ -286,7 +363,7 @@ app.listen(SERVER_CONFIG.port, '0.0.0.0', () => {
     console.log(`🔗 前端地址: http://[您的IP地址]:${SERVER_CONFIG.port}/image-recognition.html`);
     console.log(`📡 API接口: http://[您的IP地址]:${SERVER_CONFIG.port}/api/recognize`);
     console.log(`💚 健康检查: http://[您的IP地址]:${SERVER_CONFIG.port}/api/health`);
-    console.log(`🧪 百度AI测试: http://[您的IP地址]:${SERVER_CONFIG.port}/api/test-baidu`);
+    console.log(`🧪 智谱AI测试: http://[您的IP地址]:${SERVER_CONFIG.port}/api/test-zhipu`);
     console.log(`\n📱 手机访问说明:`);
     console.log(`1. 确保手机和电脑连接同一个WiFi`);
     console.log(`2. 将[您的IP地址]替换为实际的IP地址`);

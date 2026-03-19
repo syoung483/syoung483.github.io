@@ -5,6 +5,12 @@ const BAIDU_CONFIG = {
     secretKey: 'jcbsqhosMsHoLeCTIiIYRdNH1StRNeZR'
 };
 
+// 智谱 AI 图像识别配置
+const ZHIPU_CONFIG = {
+    apiKey: process.env.ZHIPU_API_KEY || '',
+    model: process.env.ZHIPU_MODEL || 'glm-4v-flash'
+};
+
 // 星火X1 配置
 // 说明：
 // 1. 本地开发建议通过环境变量覆盖，避免将真实凭据硬编码到仓库
@@ -27,6 +33,7 @@ const SERVER_CONFIG = {
 
 module.exports = {
     BAIDU_CONFIG,
+    ZHIPU_CONFIG,
     SERVER_CONFIG,
     SPARK_X1
 }; 
